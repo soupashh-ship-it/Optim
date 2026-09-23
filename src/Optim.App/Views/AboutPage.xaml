@@ -1,0 +1,53 @@
+<Page
+    x:Class="Optim.App.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16">
+
+            <StackPanel Spacing="4" Orientation="Horizontal">
+                <Image Source="ms-appx:///Assets/AppIcon.ico" Width="48" Height="48" VerticalAlignment="Center"/>
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="Optim" Style="{StaticResource TitleTextBlockStyle}"/>
+                    <TextBlock x:Name="VersionText" Text="—" Style="{StaticResource BodyTextBlockStyle}" Opacity="0.7"/>
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Streamline. Tune. Own your Windows."
+                       Style="{StaticResource SectionSubtitleStyle}"/>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="What Optim does" Style="{StaticResource CardTitleStyle}"/>
+                    <TextBlock Style="{StaticResource CardDescStyle}" TextWrapping="Wrap">
+                        Optim tunes, debloats, repairs, and audits Windows 10 and 11 machines.
+                        Every registry change is journaled before it is written, and Settings →
+                        Revert all changes restores everything in one click. Optim is 100%
+                        original code under the MIT license.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Safety model" Style="{StaticResource CardTitleStyle}"/>
+                    <TextBlock Style="{StaticResource CardDescStyle}" TextWrapping="Wrap">
+                        • Change journal — every registry mutation is recorded first&#x0a;• Protected apps can never be uninstalled through the UI&#x0a;• Only vetted services can be modified&#x0a;• The Security page only reports, never changes&#x0a;• Create a restore point before applying changes
+                    </TextBlock>
+                    <Button Content="Create restore point" Click="RestorePoint_Click" Style="{StaticResource BrandButtonStyle}"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Diagnostics" Style="{StaticResource CardTitleStyle}"/>
+                    <TextBlock x:Name="EnvText" Style="{StaticResource CardDescStyle}" TextWrapping="Wrap"/>
+                    <Button Content="Open logs folder" Click="OpenLogs_Click"/>
+                </StackPanel>
+            </Border>
+
+            <InfoBar x:Name="ResultInfo" IsOpen="False" IsClosable="True"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

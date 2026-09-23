@@ -1,0 +1,10 @@
+<UserControl
+    x:Class="Optim.App.Views.UsageGraph"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsHitTestVisible="False">
+    <Grid>
+        <Canvas x:Name="GridCanvas"/>
+        <Canvas x:Name="PlotCanvas"/>
+    </Grid>
+</UserControl>

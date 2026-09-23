@@ -1,0 +1,28 @@
+# Publishes a self-contained portable Optim release (unpackaged app, no
+# installer needed — unzip and run elevated).
+param(
+    [string]$Configuration = "Release",
+    [string]$OutDir = "$PSScriptRoot\..\release"
+)
+
+$ErrorActionPreference = "Stop"
+$env:PATH = "C:\Program Files\dotnet;" + $env:PATH
+$root = Split-Path -Parent $PSScriptRoot
+$version = (Select-Xml -LiteralPath "$root\src\Optim.App\Optim.App.csproj" -XPath "/Project/PropertyGroup/Version").Node.InnerText
+if ([string]::IsNullOrWhiteSpace($version)) { $version = "1.0.0" }
+
+$publishDir = Join-Path $OutDir "Optim-portable-$version"
+Write-Output "Publishing Optim $version ($Configuration)..."
+# Start clean: a reused folder keeps stale files (e.g. test binaries from a
+# solution-level publish) inside the shipped artifact.
+if (Test-Path -LiteralPath $publishDir) { Remove-Item -LiteralPath $publishDir -Recurse -Force }
+# Publish the app project directly (not the solution): solution-level -o
+# mixes test binaries into the artifact, and Platform=x64 is only valid
+# at project level (the .slnx config does not define it).
+& dotnet publish "$root\src\Optim.App\Optim.App.csproj" -c $Configuration -p:Platform=x64 -o $publishDir
+if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
+
+$zip = Join-Path $OutDir "Optim-portable-$version.zip"
+if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip }
+Compress-Archive -Path (Join-Path $publishDir "*") -DestinationPath $zip
+Write-Output "Wrote $zip"

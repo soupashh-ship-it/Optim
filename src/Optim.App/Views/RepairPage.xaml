@@ -1,0 +1,36 @@
+<Page
+    x:Class="Optim.App.Views.RepairPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="2" Margin="0,0,0,4">
+            <TextBlock Text="Repair" Style="{StaticResource TitleTextBlockStyle}"/>
+            <TextBlock Text="System repair tools with live output. Pick an action, review the command, run it."
+                       Style="{StaticResource CardDescStyle}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+            <ComboBox x:Name="ActionBox" MinWidth="280" DisplayMemberPath="Title" PlaceholderText="Choose repair action" SelectionChanged="ActionBox_SelectionChanged"/>
+            <ComboBox x:Name="DriveBox" MinWidth="90" PlaceholderText="Drive" Visibility="Collapsed"/>
+            <Button x:Name="RunBtn" Content="Run" Click="Run_Click" Style="{StaticResource BrandButtonStyle}"/>
+            <Button x:Name="CancelBtn" Content="Cancel" Click="Cancel_Click" IsEnabled="False"/>
+            <ProgressRing x:Name="Busy" IsActive="False" Width="24" Height="24"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" x:Name="ActionHint" Style="{StaticResource CardDescStyle}" Visibility="Collapsed"/>
+
+                <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="OutputText" FontFamily="Consolas" FontSize="12" IsTextSelectionEnabled="True" TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>

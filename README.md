@@ -1,0 +1,86 @@
+# Optim
+
+**Streamline. Tune. Own your Windows.**
+
+Optim is an original, open-source Windows optimizer for Windows 10 (19041+) and
+Windows 11, built with WinUI 3 and .NET 10. It brings debloating, performance
+tuning, privacy hardening, and deep system insight into one clean Fluent app.
+
+> ✨ 100% original code — clean-room implementation, MIT licensed.
+
+## Features
+
+| Module      | What it does                                                              |
+|-------------|---------------------------------------------------------------------------|
+| 🏠 Home      | Live CPU / memory / disk usage with quick actions (temp clean, recycle bin, DNS flush, restore point) |
+| ⚡ Optimize   | Performance toggles (basic + advanced tiers) + power-plan switcher        |
+| 🛡️ Privacy   | Telemetry, advertising ID, activity history, Recall, Cortana, location    |
+| 🧩 Features  | Widgets, Copilot, hibernation, classic context menu, taskbar search       |
+| 🧹 Debloat   | Installed appx list with multi-select uninstall + protected-components    |
+| ⚙️ Services  | Vetted services switchable (Automatic/Manual/Disabled) with live status; everything else is read-only, all changes journaled |
+| 📋 Processes | Live process list with RAM usage and guarded end-task                     |
+| 🚀 Startup   | User + machine Run keys and startup folder with enable/disable/delete     |
+| 📦 Packages  | winget-driven upgrade discovery and one-click upgrades (with confirm)     |
+| 🌐 Network   | Adapter overview, one-click DNS profiles (Cloudflare, Quad9, …), flush    |
+| 🔒 Security  | Read-only posture view: Defender, SmartScreen, UAC, all firewall profiles |
+| 📜 Policies  | Scans every registry policy override with plain-language labels, journaled one-click removal, exportable report |
+| 🔧 Repair    | SFC, DISM (check/scan/restore), chkdsk — with live output and cancel      |
+| 💻 Device    | Full hardware/OS inventory + driver export via pnputil                    |
+| ℹ️ About     | Version, safety model, restore-point helper, diagnostics                  |
+| ⚙️ Settings  | Theme (whole window incl. title bar), log viewer, restore-point helper and **Revert all changes** |
+
+## Safety model
+
+- **Change journal** — every registry mutation is journaled *before* it is
+  written (crash-safe ordering). **Revert all changes** replays the journal in
+  reverse, restoring the exact previous state, deleting keys/values that did
+  not exist before.
+- **Protected apps** — Store, shell hosts, and runtime frameworks can never be
+  uninstalled through the UI.
+- **Vetted services** — only a curated allow-list of services can be modified.
+- **Read-only security** — the Security page only reports; it never flips.
+- **Restore points** — a helper is one click away on Home.
+
+## Building
+
+Requires **Windows 10 19041+ / Windows 11** and the **.NET 10 SDK**
+(WindowsAppSDK is self-contained on publish).
+
+```bash
+dotnet build Optim.slnx -c Debug
+dotnet run --project src/Optim.App
+dotnet test tests/Optim.Core.Tests
+```
+
+The app requests administrator elevation at launch (registry + service
+operations require it).
+
+## Architecture
+
+```
+Optim.slnx
+├── src/Optim.App     → WinUI 3 executable (Views, DI host, shell)
+├── src/Optim.Core    → Engines: tweaks, debloat, services, network, repair…
+│   └── TweakCatalog  → every tweak is one declarative record
+└── tests             → xUnit tests for the core engines
+```
+
+Adding a tweak = adding one `TweakDefinition` to `TweakCatalog.cs`. UI,
+journaling, apply, revert and detect are all generic. Mark system-level
+tweaks advanced by adding their id to `AdvancedIds`. See
+[DESIGN.md](DESIGN.md) for the full design document.
+
+## Releases
+
+```powershell
+# Portable self-contained build (unzip and run elevated)
+.\scripts\publish-portable.ps1
+```
+
+CI builds and tests every push to `main` (`.github/workflows/build.yml`).
+The app icon is generated from scratch by `scripts/generate-icon.ps1` —
+no external artwork.
+
+## License
+
+[MIT](LICENSE.md) — free to use, modify and distribute.
