@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Optim.App.Models;
 using Optim.App.Services;
 using Optim.Core.Tweaks;
@@ -164,6 +165,9 @@ public abstract class TweakListPage : Page
             title = s;
         }
 
+        // A cached page can be navigated to again right after an Unloaded pass.
+        _alive = true;
+
         Header = title;
         Subtitle = Category switch
         {
@@ -185,6 +189,12 @@ public abstract class TweakListPage : Page
             if (highlightId is not null)
             {
                 HighlightTweak(highlightId);
+            }
+            else
+            {
+                // Landing on the page without a search hit: drop the accent the
+                // previous jump left behind.
+                ClearHighlight();
             }
         }
         base.OnNavigatedTo(e);
@@ -603,9 +613,14 @@ public abstract class TweakListPage : Page
     /// </summary>
     private async Task LoadTweaksAsync(string? highlightId)
     {
+        // Generation token: a later load (e.g. a search jump arriving while the
+        // first load is still batching) supersedes this one, so batches from the
+        // abandoned run never append cards or steal the highlight.
+        var generation = ++_loadGeneration;
         _fullyLoaded = false;
         _cards.Clear();
         _sectionHeaders.Clear();
+        _highlightedCard = null;
         _root.Children.Clear();
         _count.Text = "Loading…";
         try
@@ -625,8 +640,9 @@ public abstract class TweakListPage : Page
             const int BatchSize = 10;
             for (var i = 0; i < states.Count; i += BatchSize)
             {
-                // Stopped adding if the user navigated away mid-load.
-                if (!_alive)
+                // Stopped adding if the user navigated away mid-load or a newer
+                // load superseded this one.
+                if (!_alive || generation != _loadGeneration)
                 {
                     return;
                 }
@@ -661,6 +677,11 @@ public abstract class TweakListPage : Page
                 await Task.Yield();
             }
 
+            if (generation != _loadGeneration)
+            {
+                return;
+            }
+
             ApplyFilter();
             RefreshHero();
             _fullyLoaded = true;
@@ -678,10 +699,12 @@ public abstract class TweakListPage : Page
 
     private bool _alive = true;
     private bool _fullyLoaded;
+    private int _loadGeneration;
 
-    // Resource lookups per card (×68 tweaks) show up in navigation traces;
-    // resolve once. The styles themselves reference theme brushes internally,
-    // so caching the Style object is safe across light/dark switches.
+    // Resource lookups per card (dozens of tweaks per page) show up in
+    // navigation traces; resolve once. The styles themselves reference theme
+    // brushes internally, so caching the Style object is safe across
+    // light/dark switches.
     private static Style? _cardTitleStyle;
     private static Style? _cardDescStyle;
     private static Style? _captionStyle;
@@ -925,57 +948,101 @@ public abstract class TweakListPage : Page
     protected virtual IEnumerable<FrameworkElement> BuildFooter() =>
         Enumerable.Empty<FrameworkElement>();
 
+    private Border? _highlightedCard;
+
     /// <summary>
-    /// Filters to the requested tweak and accents its card so global search
-    /// lands on the exact toggle instead of just the page.
+    /// Brings one specific tweak into focus after a global-search jump: clears
+    /// any page filter that would hide it, scrolls it into view and accents it
+    /// with a short pulse, so the arrival target is unmistakable.
     /// </summary>
     public void HighlightTweak(string tweakId)
     {
         var match = _cards.FirstOrDefault(c =>
             string.Equals(c.Row.Definition.Id, tweakId, StringComparison.OrdinalIgnoreCase));
-        if (match is null || match.Card is null)
+        if (match is null)
         {
             return;
         }
 
-        // Clear any previous highlight back to the theme default.
-        foreach (var c in _cards)
-        {
-            var card = c.Card;
-            card.ClearValue(Border.BorderBrushProperty);
-            card.BorderThickness = new Thickness(1);
-        }
-
-        // Narrow the list so the target is unmistakable, then accent it.
-        // An advanced target would stay filtered out while the box is off,
-        // so enable it first (fires ApplyFilter via the Checked event).
+        // Reset anything that could keep the target off screen. An advanced
+        // target stays hidden while the box is off, and a leftover filter from
+        // earlier typing would hide it too. Enable Advanced first: its Checked
+        // event re-runs the filter.
         if (match.Row.IsAdvanced && _advanced.IsChecked != true)
         {
             _advanced.IsChecked = true;
         }
-        _search.Text = match.Row.Title;
+        if (!string.IsNullOrEmpty(_search.Text))
+        {
+            _search.Text = string.Empty; // TextChanged re-runs ApplyFilter
+        }
+        else
+        {
+            ApplyFilter();
+        }
+
+        ClearHighlight();
+        _highlightedCard = match.Card;
 
         try
         {
-            if (Application.Current.Resources.TryGetValue("AccentFillColorDefaultBrush", out var accent)
-                && accent is Brush accentBrush)
-            {
-                match.Card.BorderBrush = accentBrush;
-            }
-            else
-            {
-                match.Card.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.DodgerBlue);
-            }
+            match.Card.BorderBrush = Application.Current.Resources.TryGetValue("AccentFillColorDefaultBrush", out var accent)
+                && accent is Brush accentBrush
+                ? accentBrush
+                : new SolidColorBrush(Microsoft.UI.Colors.DodgerBlue);
         }
         catch
         {
             match.Card.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.DodgerBlue);
         }
         match.Card.BorderThickness = new Thickness(2);
-        // Defer until layout: calling this synchronously from OnNavigatedTo
-        // can no-op before the card has been measured.
+
+        // Defer until layout: from OnNavigatedTo the card may not be measured
+        // yet, and the pulse must not fight the scroll.
         var target = match.Card;
         DispatcherQueue.TryEnqueue(() =>
-            target.StartBringIntoView(new BringIntoViewOptions { VerticalAlignmentRatio = 0.3 }));
+        {
+            try
+            {
+                target.StartBringIntoView(new BringIntoViewOptions { VerticalAlignmentRatio = 0.3 });
+                var pulse = new Storyboard();
+                var fade = new DoubleAnimation
+                {
+                    From = 1.0,
+                    To = 0.45,
+                    Duration = new Duration(TimeSpan.FromMilliseconds(320)),
+                    AutoReverse = true,
+                    RepeatBehavior = new RepeatBehavior(2)
+                };
+                Storyboard.SetTarget(fade, target);
+                Storyboard.SetTargetProperty(fade, "Opacity");
+                pulse.Children.Add(fade);
+                pulse.Begin();
+            }
+            catch (Exception ex)
+            {
+                Optim.Core.Logging.FileLogger.Warn($"Highlight pulse: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>Removes the arrival accent from the previously highlighted card.</summary>
+    private void ClearHighlight()
+    {
+        if (_highlightedCard is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _highlightedCard.ClearValue(Border.BorderBrushProperty);
+            _highlightedCard.BorderThickness = new Thickness(1);
+        }
+        catch
+        {
+        }
+
+        _highlightedCard = null;
     }
 }

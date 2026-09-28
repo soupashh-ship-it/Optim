@@ -50,6 +50,10 @@ public sealed partial class ShellPage : Page
         ["about"] = "About"
     };
 
+    /// <summary>Set while <see cref="NavigateTo"/> moves the selection, so the
+    /// selection handler does not navigate a second time without the payload.</summary>
+    private bool _suppressNav;
+
     public ShellPage()
     {
         InitializeComponent();
@@ -145,6 +149,14 @@ public sealed partial class ShellPage : Page
 
     private void Nav_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
+        // Programmatic navigation sets SelectedItem itself and then navigates
+        // with the full payload; letting the selection event navigate too would
+        // start a second, parameterless load of the same page.
+        if (_suppressNav)
+        {
+            return;
+        }
+
         if (args.SelectedItem is NavigationViewItem item
             && item.Tag is string tag
             && Routes.TryGetValue(tag, out var pageType)
@@ -168,7 +180,17 @@ public sealed partial class ShellPage : Page
                 .FirstOrDefault(i => (string?)i.Tag == tag);
             if (target is not null)
             {
-                Nav.SelectedItem = target;
+                // Suppress the selection handler: this method performs the one
+                // navigation below, carrying the highlight payload with it.
+                _suppressNav = true;
+                try
+                {
+                    Nav.SelectedItem = target;
+                }
+                finally
+                {
+                    _suppressNav = false;
+                }
             }
 
             // When highlighting a specific tweak, always (re)navigate so the
