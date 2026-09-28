@@ -91,11 +91,21 @@ headings, settings rows). Tweak titles and descriptions are still English-only.
 ```powershell
 # Portable self-contained build (unzip and run elevated)
 .\scripts\publish-portable.ps1
+
+# Installer (requires Inno Setup: winget install JRSoftware.InnoSetup)
+.\scripts\build-installer.ps1
 ```
 
-CI builds and tests every push to `main` (`.github/workflows/build.yml`).
-The app icon is generated from scratch by `scripts/generate-icon.ps1` —
-no external artwork.
+Optim writes HKLM and controls services, so it must keep requesting
+administrator. An MSIX package runs with the user's token and cannot raise
+UAC, which is why the shipping format is a classic elevated installer that
+installs the self-contained payload; the portable zip stays available for
+people who would rather not install anything.
+
+CI builds and tests every push to `main` (`.github/workflows/build.yml`), and
+`.github/workflows/release.yml` publishes the portable build and the installer
+on a `v*` tag (or on demand). The app icon is generated from scratch by
+`scripts/generate-icon.ps1` — no external artwork.
 
 ## License
 
