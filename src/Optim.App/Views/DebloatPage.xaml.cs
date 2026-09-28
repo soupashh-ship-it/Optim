@@ -124,6 +124,15 @@ public sealed partial class DebloatPage : Page
 
     private async void Uninstall_Click(object sender, RoutedEventArgs e)
     {
+        // One operation at a time: without this, Refresh during an uninstall
+        // re-enumerates while packages are being removed, and Uninstall during
+        // a refresh repopulates the list mid-uninstall. LoadAsync checks _busy
+        // too, so the guard holds in both directions.
+        if (_busy)
+        {
+            return;
+        }
+
         var selected = _rows.Where(r => r.IsSelected && !r.IsProtected).Select(r => r.PackageFamilyName).ToList();
         if (selected.Count == 0 || XamlRoot is null)
         {
@@ -155,6 +164,9 @@ public sealed partial class DebloatPage : Page
             return;
         }
 
+        // The confirm dialog awaited above let other handlers run, so _busy
+        // must be claimed after it, not before.
+        _busy = true;
         Busy.IsActive = true;
         try
         {
@@ -176,6 +188,7 @@ public sealed partial class DebloatPage : Page
         }
         finally
         {
+            _busy = false;
             Busy.IsActive = false;
         }
     }

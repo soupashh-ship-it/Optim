@@ -68,6 +68,11 @@ public sealed partial class HomePage : Page
             {
                 DiskGraph.AddValue(s.DiskPercent);
             }
+            else
+            {
+                // Keep the chart from presenting pre-failure samples as current.
+                DiskGraph.MarkUnavailable();
+            }
         }
         catch
         {

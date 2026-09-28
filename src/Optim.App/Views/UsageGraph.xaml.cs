@@ -57,6 +57,20 @@ public sealed partial class UsageGraph : UserControl
         Render();
     }
 
+    /// <summary>
+    /// Drops all plotted samples because sampling became unavailable (counter
+    /// failure mid-session). Keeps rendering old points here would present
+    /// stale data as current; cheap no-op when the chart is already empty.
+    /// </summary>
+    public void MarkUnavailable()
+    {
+        if (_values.Count > 0)
+        {
+            _values.Clear();
+            Render();
+        }
+    }
+
     private bool _gridDirty = true;
 
     private void Render()
