@@ -1,3 +1,4 @@
+using Optim.App.Localization;
 using Optim.App.Models;
 using Optim.Core.Network;
 using Optim.Core.Repair;
@@ -70,7 +71,11 @@ public static class SearchRouter
                 TweakCategory.Privacy => "privacy",
                 _ => "features"
             };
-            items.Add(new SearchItem(tweak.Title, tweak.Category.ToString(), "\uE713", route, tweak.Id, tweak.Description));
+            // Same localized strings the rows render, with the catalog text as
+            // the English fallback, so search matches what the user sees.
+            var title = Loc.Get(TweakResourceKeys.Title(tweak.Id), tweak.Title);
+            var description = Loc.Get(TweakResourceKeys.Description(tweak.Id), tweak.Description);
+            items.Add(new SearchItem(title, tweak.Category.ToString(), "\uE713", route, tweak.Id, description));
         }
 
         // Page actions: static shortcuts that route to the owning page.

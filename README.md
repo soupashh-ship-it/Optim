@@ -81,10 +81,13 @@ To add a language, copy the file to `Strings/<bcp-47-tag>/Resources.resw` (for
 example `Strings/de-DE/Resources.resw`) and translate the `<value>` elements.
 Keys must stay identical; any key a translation omits falls back to English, so
 shipping a partial translation is safe. No code changes are needed — the build
-picks the file up and MRT Core resolves it by the user's language.
+picks the file up and MRT Core resolves it by the user's language. The
+`Tweak_*` entries are generated from `TweakCatalog` — never edit them by hand;
+run `pwsh scripts/generate-tweak-resw.ps1` after changing the catalog, and a
+test fails when the committed file drifts.
 
-Current coverage is the shell and Settings surface (navigation labels, page
-headings, settings rows). Tweak titles and descriptions are still English-only.
+Coverage spans the shell, the Settings page and every catalog tweak (all 111
+titles and descriptions).
 
 ## Releases
 

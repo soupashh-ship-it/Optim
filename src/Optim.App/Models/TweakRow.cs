@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Optim.App.Localization;
 using Optim.Core.Tweaks;
 
 namespace Optim.App.Models;
@@ -26,8 +27,14 @@ public sealed class TweakRow : INotifyPropertyChanged
 
     public TweakDefinition Definition { get; }
 
-    public string Title => Definition.Title;
-    public string Description => Definition.Description;
+    // Catalog text is the English fallback: a missing resource key degrades to
+    // the original wording instead of an empty row, and a translated file
+    // serves the localized strings without any code change.
+    public string Title => Loc.Get(
+        TweakResourceKeys.Title(Definition.Id), Definition.Title);
+
+    public string Description => Loc.Get(
+        TweakResourceKeys.Description(Definition.Id), Definition.Description);
     public string RestartNote => Definition.RestartRequired ? "Restart required" : string.Empty;
     public bool HasRestartNote => Definition.RestartRequired;
     public bool IsAdvanced => Definition.IsAdvanced;

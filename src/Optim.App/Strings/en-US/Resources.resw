@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -12,7 +12,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
   <!--
     Optim's user-facing strings. This is the neutral (en-US) resource.
 
@@ -26,7 +25,6 @@
     Code resolves them through Optim.App.Localization.Loc.Get, which always
     takes an English fallback so a missing key can never blank the UI.
   -->
-
   <!-- Navigation labels -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Home</value>
@@ -76,7 +74,6 @@
   <data name="Nav_About.Content" xml:space="preserve">
     <value>About</value>
   </data>
-
   <!-- Page headings (also the navigation payload the shell passes to a page) -->
   <data name="Page_Home" xml:space="preserve">
     <value>Home</value>
@@ -126,7 +123,6 @@
   <data name="Page_About" xml:space="preserve">
     <value>About</value>
   </data>
-
   <!-- Settings page -->
   <data name="Settings_Title.Text" xml:space="preserve">
     <value>Settings</value>
@@ -158,12 +154,677 @@
   <data name="Settings_Theme_System.Content" xml:space="preserve">
     <value>Use system</value>
   </data>
-
   <!-- Shell -->
   <data name="App_Name" xml:space="preserve">
     <value>Optim</value>
   </data>
   <data name="Shell_Search.PlaceholderText" xml:space="preserve">
     <value>Search tweaks, pages, apps…</value>
+  </data>
+  <data name="Tweak_features_action-center.Description" xml:space="preserve">
+    <value>Hides notifications and the quick settings flyout.</value>
+  </data>
+  <data name="Tweak_features_action-center.Title" xml:space="preserve">
+    <value>Disable notification center</value>
+  </data>
+  <data name="Tweak_features_autorun-disable.Description" xml:space="preserve">
+    <value>Blocks USB and disc AutoRun to stop malware spread.</value>
+  </data>
+  <data name="Tweak_features_autorun-disable.Title" xml:space="preserve">
+    <value>Disable AutoRun</value>
+  </data>
+  <data name="Tweak_features_bing-taskbar.Description" xml:space="preserve">
+    <value>Sets the taskbar search box to its most compact mode; use the Search settings page to hide it fully.</value>
+  </data>
+  <data name="Tweak_features_bing-taskbar.Title" xml:space="preserve">
+    <value>Minimal taskbar search box</value>
+  </data>
+  <data name="Tweak_features_chat.Description" xml:space="preserve">
+    <value>Removes the Teams Chat flyout from the taskbar.</value>
+  </data>
+  <data name="Tweak_features_chat.Title" xml:space="preserve">
+    <value>Disable Chat taskbar icon</value>
+  </data>
+  <data name="Tweak_features_compact-mode.Description" xml:space="preserve">
+    <value>Tightens item spacing in Explorer lists to fit more per screen.</value>
+  </data>
+  <data name="Tweak_features_compact-mode.Title" xml:space="preserve">
+    <value>Compact Explorer spacing</value>
+  </data>
+  <data name="Tweak_features_consumer-features-block.Description" xml:space="preserve">
+    <value>Stops Windows reinstalling suggested third-party apps.</value>
+  </data>
+  <data name="Tweak_features_consumer-features-block.Title" xml:space="preserve">
+    <value>Block suggested bloat</value>
+  </data>
+  <data name="Tweak_features_context-menu-classic.Description" xml:space="preserve">
+    <value>Restores the full Windows 10-style right-click menu.</value>
+  </data>
+  <data name="Tweak_features_context-menu-classic.Title" xml:space="preserve">
+    <value>Classic context menu</value>
+  </data>
+  <data name="Tweak_features_copilot-button-hide.Description" xml:space="preserve">
+    <value>Removes the Copilot entry point for the current user.</value>
+  </data>
+  <data name="Tweak_features_copilot-button-hide.Title" xml:space="preserve">
+    <value>Hide Copilot from the taskbar</value>
+  </data>
+  <data name="Tweak_features_copilot-machine-policy.Description" xml:space="preserve">
+    <value>Policy that turns Copilot off for every account; honored on builds that read it.</value>
+  </data>
+  <data name="Tweak_features_copilot-machine-policy.Title" xml:space="preserve">
+    <value>Disable Copilot machine-wide</value>
+  </data>
+  <data name="Tweak_features_copilot.Description" xml:space="preserve">
+    <value>Writes the Copilot policy key; it applies on builds where the OS honors it, otherwise it is a harmless marker.</value>
+  </data>
+  <data name="Tweak_features_copilot.Title" xml:space="preserve">
+    <value>Disable Copilot (policy)</value>
+  </data>
+  <data name="Tweak_features_dark-theme.Description" xml:space="preserve">
+    <value>Switches built-in apps and system UI to dark mode.</value>
+  </data>
+  <data name="Tweak_features_dark-theme.Title" xml:space="preserve">
+    <value>Dark app theme</value>
+  </data>
+  <data name="Tweak_features_defer-feature-updates.Description" xml:space="preserve">
+    <value>Holds new Windows versions back for up to 365 days on builds that honor the policy.</value>
+  </data>
+  <data name="Tweak_features_defer-feature-updates.Title" xml:space="preserve">
+    <value>Defer feature updates a year</value>
+  </data>
+  <data name="Tweak_features_driver-search-order.Description" xml:space="preserve">
+    <value>Tells Windows Update to stop offering driver packages for this PC.</value>
+  </data>
+  <data name="Tweak_features_driver-search-order.Title" xml:space="preserve">
+    <value>Keep drivers off Windows Update</value>
+  </data>
+  <data name="Tweak_features_end-task-rightclick.Description" xml:space="preserve">
+    <value>Adds End task to the taskbar app right-click menu.</value>
+  </data>
+  <data name="Tweak_features_end-task-rightclick.Title" xml:space="preserve">
+    <value>End task with right-click</value>
+  </data>
+  <data name="Tweak_features_exclude-drivers.Description" xml:space="preserve">
+    <value>Stops Windows Update replacing working drivers automatically.</value>
+  </data>
+  <data name="Tweak_features_exclude-drivers.Title" xml:space="preserve">
+    <value>Exclude drivers from updates</value>
+  </data>
+  <data name="Tweak_features_explorer-open-thispc.Description" xml:space="preserve">
+    <value>Makes File Explorer start at This PC instead of Quick access.</value>
+  </data>
+  <data name="Tweak_features_explorer-open-thispc.Title" xml:space="preserve">
+    <value>Open Explorer at This PC</value>
+  </data>
+  <data name="Tweak_features_fast-startup-off.Description" xml:space="preserve">
+    <value>Makes shutdown a true full shutdown, so firmware and dual-boot changes take effect.</value>
+  </data>
+  <data name="Tweak_features_fast-startup-off.Title" xml:space="preserve">
+    <value>Disable fast startup</value>
+  </data>
+  <data name="Tweak_features_file-extensions.Description" xml:space="preserve">
+    <value>Always shows extensions like .exe and .txt in Explorer.</value>
+  </data>
+  <data name="Tweak_features_file-extensions.Title" xml:space="preserve">
+    <value>Show file extensions</value>
+  </data>
+  <data name="Tweak_features_full-path-title.Description" xml:space="preserve">
+    <value>Shows the complete folder path in Explorer title bars.</value>
+  </data>
+  <data name="Tweak_features_full-path-title.Title" xml:space="preserve">
+    <value>Full path in title bar</value>
+  </data>
+  <data name="Tweak_features_hibernation.Description" xml:space="preserve">
+    <value>Turns hibernation off and lets Windows reclaim hiberfil.sys (verified via the power API, not just a registry guess).</value>
+  </data>
+  <data name="Tweak_features_hibernation.Title" xml:space="preserve">
+    <value>Disable hibernation</value>
+  </data>
+  <data name="Tweak_features_hidden-files.Description" xml:space="preserve">
+    <value>Reveals hidden files and folders in Explorer.</value>
+  </data>
+  <data name="Tweak_features_hidden-files.Title" xml:space="preserve">
+    <value>Show hidden files</value>
+  </data>
+  <data name="Tweak_features_lock-screen.Description" xml:space="preserve">
+    <value>Skips the lock screen when resuming from sleep.</value>
+  </data>
+  <data name="Tweak_features_lock-screen.Title" xml:space="preserve">
+    <value>Disable lock screen</value>
+  </data>
+  <data name="Tweak_features_logon-blur-disable.Description" xml:space="preserve">
+    <value>Removes the blur from the sign-in screen background.</value>
+  </data>
+  <data name="Tweak_features_logon-blur-disable.Title" xml:space="preserve">
+    <value>Sharp sign-in background</value>
+  </data>
+  <data name="Tweak_features_maintenance-off.Description" xml:space="preserve">
+    <value>Stops the scheduled idle maintenance tasks (defrag, updates, diagnostics).</value>
+  </data>
+  <data name="Tweak_features_maintenance-off.Title" xml:space="preserve">
+    <value>Disable automatic maintenance</value>
+  </data>
+  <data name="Tweak_features_meet-now-hide.Description" xml:space="preserve">
+    <value>Removes the Meet Now (Skype) icon from the notification area.</value>
+  </data>
+  <data name="Tweak_features_meet-now-hide.Title" xml:space="preserve">
+    <value>Hide Meet Now</value>
+  </data>
+  <data name="Tweak_features_no-auto-reboot.Description" xml:space="preserve">
+    <value>Prevents automatic restart while you are signed in.</value>
+  </data>
+  <data name="Tweak_features_no-auto-reboot.Title" xml:space="preserve">
+    <value>No forced reboot after updates</value>
+  </data>
+  <data name="Tweak_features_recent-files-off.Description" xml:space="preserve">
+    <value>Stops Explorer listing recently used files and frequently visited folders.</value>
+  </data>
+  <data name="Tweak_features_recent-files-off.Title" xml:space="preserve">
+    <value>Hide recent and frequent items</value>
+  </data>
+  <data name="Tweak_features_store-auto-update-off.Description" xml:space="preserve">
+    <value>Stops the Microsoft Store downloading app updates in the background.</value>
+  </data>
+  <data name="Tweak_features_store-auto-update-off.Title" xml:space="preserve">
+    <value>Disable Store auto-updates</value>
+  </data>
+  <data name="Tweak_features_sync-notifications-off.Description" xml:space="preserve">
+    <value>Stops one-drive style sync providers advertising upgrade upsell banners in Explorer.</value>
+  </data>
+  <data name="Tweak_features_sync-notifications-off.Title" xml:space="preserve">
+    <value>Disable sync provider ads</value>
+  </data>
+  <data name="Tweak_features_taskbar-chat-toggle.Description" xml:space="preserve">
+    <value>Removes the Chat icon from the taskbar.</value>
+  </data>
+  <data name="Tweak_features_taskbar-chat-toggle.Title" xml:space="preserve">
+    <value>Hide Chat from taskbar</value>
+  </data>
+  <data name="Tweak_features_taskbar-left-align.Description" xml:space="preserve">
+    <value>Moves taskbar icons back to the left edge.</value>
+  </data>
+  <data name="Tweak_features_taskbar-left-align.Title" xml:space="preserve">
+    <value>Left-align the taskbar</value>
+  </data>
+  <data name="Tweak_features_taskbar-small-icons.Description" xml:space="preserve">
+    <value>Fits more buttons on the taskbar by shrinking icons.</value>
+  </data>
+  <data name="Tweak_features_taskbar-small-icons.Title" xml:space="preserve">
+    <value>Small taskbar icons</value>
+  </data>
+  <data name="Tweak_features_taskbar-widgets-toggle.Description" xml:space="preserve">
+    <value>Removes the Widgets entry point from the taskbar.</value>
+  </data>
+  <data name="Tweak_features_taskbar-widgets-toggle.Title" xml:space="preserve">
+    <value>Hide Widgets from taskbar</value>
+  </data>
+  <data name="Tweak_features_taskview-button-hide.Description" xml:space="preserve">
+    <value>Removes the Task View button from the taskbar.</value>
+  </data>
+  <data name="Tweak_features_taskview-button-hide.Title" xml:space="preserve">
+    <value>Hide Task View button</value>
+  </data>
+  <data name="Tweak_features_thispc-desktop.Description" xml:space="preserve">
+    <value>Pins the This PC icon to the desktop.</value>
+  </data>
+  <data name="Tweak_features_thispc-desktop.Title" xml:space="preserve">
+    <value>Show This PC on desktop</value>
+  </data>
+  <data name="Tweak_features_update-notify.Description" xml:space="preserve">
+    <value>Sets the update policy to notify before download; on Windows 10/11 Home this policy may be ignored.</value>
+  </data>
+  <data name="Tweak_features_update-notify.Title" xml:space="preserve">
+    <value>Notify before downloading updates</value>
+  </data>
+  <data name="Tweak_features_widgets.Description" xml:space="preserve">
+    <value>Removes the widgets board and taskbar entry.</value>
+  </data>
+  <data name="Tweak_features_widgets.Title" xml:space="preserve">
+    <value>Disable Widgets</value>
+  </data>
+  <data name="Tweak_optimize_8dot3-disable.Description" xml:space="preserve">
+    <value>Sets the global default so newly formatted volumes skip legacy 8.3 names; existing volumes are untouched.</value>
+  </data>
+  <data name="Tweak_optimize_8dot3-disable.Title" xml:space="preserve">
+    <value>Disable 8.3 short filenames for new volumes</value>
+  </data>
+  <data name="Tweak_optimize_aero-shake-disable.Description" xml:space="preserve">
+    <value>Stops windows minimizing when you shake the title bar.</value>
+  </data>
+  <data name="Tweak_optimize_aero-shake-disable.Title" xml:space="preserve">
+    <value>Disable Aero Shake</value>
+  </data>
+  <data name="Tweak_optimize_autoend-tasks.Description" xml:space="preserve">
+    <value>Ends unresponsive apps automatically at shutdown without prompts.</value>
+  </data>
+  <data name="Tweak_optimize_autoend-tasks.Title" xml:space="preserve">
+    <value>Auto-close hung apps</value>
+  </data>
+  <data name="Tweak_optimize_background-apps.Description" xml:space="preserve">
+    <value>Prevents Store apps from running in the background.</value>
+  </data>
+  <data name="Tweak_optimize_background-apps.Title" xml:space="preserve">
+    <value>Disable background apps</value>
+  </data>
+  <data name="Tweak_optimize_balloon-tips-off.Description" xml:space="preserve">
+    <value>Stops legacy balloon tip popups from tray icons.</value>
+  </data>
+  <data name="Tweak_optimize_balloon-tips-off.Title" xml:space="preserve">
+    <value>Disable notification balloons</value>
+  </data>
+  <data name="Tweak_optimize_delivery-p2p-disable.Description" xml:space="preserve">
+    <value>Stops uploading downloaded updates to other PCs on the network.</value>
+  </data>
+  <data name="Tweak_optimize_delivery-p2p-disable.Title" xml:space="preserve">
+    <value>Disable update peer sharing</value>
+  </data>
+  <data name="Tweak_optimize_disable-ipv6.Description" xml:space="preserve">
+    <value>Turns off IPv6 and its transition helpers; some VPNs, Xbox networking and home routers need it.</value>
+  </data>
+  <data name="Tweak_optimize_disable-ipv6.Title" xml:space="preserve">
+    <value>Disable IPv6 stack</value>
+  </data>
+  <data name="Tweak_optimize_disable-restart-apps.Description" xml:space="preserve">
+    <value>Skips relaunching the apps that were open when you signed out.</value>
+  </data>
+  <data name="Tweak_optimize_disable-restart-apps.Title" xml:space="preserve">
+    <value>Do not reopen apps after sign-in</value>
+  </data>
+  <data name="Tweak_optimize_fast-menu-hover.Description" xml:space="preserve">
+    <value>Cuts the hover delay before menus and flyouts react.</value>
+  </data>
+  <data name="Tweak_optimize_fast-menu-hover.Title" xml:space="preserve">
+    <value>Instant menu hover response</value>
+  </data>
+  <data name="Tweak_optimize_fullscreen-optimizations-off.Description" xml:space="preserve">
+    <value>Stops Windows replacing exclusive fullscreen with optimized borderless in games.</value>
+  </data>
+  <data name="Tweak_optimize_fullscreen-optimizations-off.Title" xml:space="preserve">
+    <value>True fullscreen exclusive</value>
+  </data>
+  <data name="Tweak_optimize_game-mode.Description" xml:space="preserve">
+    <value>Prioritizes game processes for steadier frame rates.</value>
+  </data>
+  <data name="Tweak_optimize_game-mode.Title" xml:space="preserve">
+    <value>Enable Game Mode</value>
+  </data>
+  <data name="Tweak_optimize_gamebar-startup-off.Description" xml:space="preserve">
+    <value>Stops the Game Bar panel appearing when a game starts.</value>
+  </data>
+  <data name="Tweak_optimize_gamebar-startup-off.Title" xml:space="preserve">
+    <value>No Game Bar on game launch</value>
+  </data>
+  <data name="Tweak_optimize_gamebar.Description" xml:space="preserve">
+    <value>Stops background game clip recording to free GPU time.</value>
+  </data>
+  <data name="Tweak_optimize_gamebar.Title" xml:space="preserve">
+    <value>Disable Game Bar DVR</value>
+  </data>
+  <data name="Tweak_optimize_gaming-priority.Description" xml:space="preserve">
+    <value>Schedules games as high priority tasks.</value>
+  </data>
+  <data name="Tweak_optimize_gaming-priority.Title" xml:space="preserve">
+    <value>Gaming priority</value>
+  </data>
+  <data name="Tweak_optimize_hags.Description" xml:space="preserve">
+    <value>Lets the GPU manage its own memory to cut latency in games.</value>
+  </data>
+  <data name="Tweak_optimize_hags.Title" xml:space="preserve">
+    <value>Hardware GPU scheduling</value>
+  </data>
+  <data name="Tweak_optimize_keyboard-fast-repeat.Description" xml:space="preserve">
+    <value>Shortens the key-press delay and maximizes the repeat rate.</value>
+  </data>
+  <data name="Tweak_optimize_keyboard-fast-repeat.Title" xml:space="preserve">
+    <value>Fast key repeat</value>
+  </data>
+  <data name="Tweak_optimize_last-access-disable.Description" xml:space="preserve">
+    <value>Ends the NTFS last-access timestamp write on every file read.</value>
+  </data>
+  <data name="Tweak_optimize_last-access-disable.Title" xml:space="preserve">
+    <value>Stop tracking file access times</value>
+  </data>
+  <data name="Tweak_optimize_menu-show-delay.Description" xml:space="preserve">
+    <value>Removes the artificial delay before menus open.</value>
+  </data>
+  <data name="Tweak_optimize_menu-show-delay.Title" xml:space="preserve">
+    <value>Instant menu display</value>
+  </data>
+  <data name="Tweak_optimize_mouse-precision-off.Description" xml:space="preserve">
+    <value>Disables pointer precision acceleration for 1:1 mouse movement.</value>
+  </data>
+  <data name="Tweak_optimize_mouse-precision-off.Title" xml:space="preserve">
+    <value>Raw mouse input</value>
+  </data>
+  <data name="Tweak_optimize_network-throttle.Description" xml:space="preserve">
+    <value>Removes the multimedia-class network throttle for streaming/VOIP headroom.</value>
+  </data>
+  <data name="Tweak_optimize_network-throttle.Title" xml:space="preserve">
+    <value>Lift network throttling</value>
+  </data>
+  <data name="Tweak_optimize_power-throttling-off.Description" xml:space="preserve">
+    <value>Stops Windows from throttling background work on laptops.</value>
+  </data>
+  <data name="Tweak_optimize_power-throttling-off.Title" xml:space="preserve">
+    <value>Disable power throttling</value>
+  </data>
+  <data name="Tweak_optimize_prefetch-disable.Description" xml:space="preserve">
+    <value>Stops the loader pre-reading app data; helps on slow SSDs and VMs, can slow cold launches on hard disks.</value>
+  </data>
+  <data name="Tweak_optimize_prefetch-disable.Title" xml:space="preserve">
+    <value>Disable application prefetching</value>
+  </data>
+  <data name="Tweak_optimize_qos-reserve-disable.Description" xml:space="preserve">
+    <value>Stops the QoS packet scheduler reserving a slice of every link.</value>
+  </data>
+  <data name="Tweak_optimize_qos-reserve-disable.Title" xml:space="preserve">
+    <value>Release reserved network bandwidth</value>
+  </data>
+  <data name="Tweak_optimize_search-indexing.Description" xml:space="preserve">
+    <value>Stops background indexing for lower disk and CPU load.</value>
+  </data>
+  <data name="Tweak_optimize_search-indexing.Title" xml:space="preserve">
+    <value>Disable search indexing</value>
+  </data>
+  <data name="Tweak_optimize_service-shutdown.Description" xml:space="preserve">
+    <value>Shortens the grace period Windows gives services to stop.</value>
+  </data>
+  <data name="Tweak_optimize_service-shutdown.Title" xml:space="preserve">
+    <value>Faster service shutdown</value>
+  </data>
+  <data name="Tweak_optimize_shutdown-fast.Description" xml:space="preserve">
+    <value>Trims the wait window for unresponsive apps at shutdown.</value>
+  </data>
+  <data name="Tweak_optimize_shutdown-fast.Title" xml:space="preserve">
+    <value>Fast shutdown</value>
+  </data>
+  <data name="Tweak_optimize_skip-pagefile-clear.Description" xml:space="preserve">
+    <value>Stops Windows overwriting the pagefile on every shutdown, which shortens power-off noticeably.</value>
+  </data>
+  <data name="Tweak_optimize_skip-pagefile-clear.Title" xml:space="preserve">
+    <value>Skip pagefile wipe at shutdown</value>
+  </data>
+  <data name="Tweak_optimize_snap-flyout-disable.Description" xml:space="preserve">
+    <value>Hides the snap-layout popup when hovering maximize.</value>
+  </data>
+  <data name="Tweak_optimize_snap-flyout-disable.Title" xml:space="preserve">
+    <value>Disable Snap flyout</value>
+  </data>
+  <data name="Tweak_optimize_startup-delay.Description" xml:space="preserve">
+    <value>Runs startup apps without the artificial startup serialization delay.</value>
+  </data>
+  <data name="Tweak_optimize_startup-delay.Title" xml:space="preserve">
+    <value>Remove startup delay</value>
+  </data>
+  <data name="Tweak_optimize_superfetch-disable.Description" xml:space="preserve">
+    <value>Stops background memory pre-population; useful on VMs and systems with aggressive disk use.</value>
+  </data>
+  <data name="Tweak_optimize_superfetch-disable.Title" xml:space="preserve">
+    <value>Disable Superfetch</value>
+  </data>
+  <data name="Tweak_optimize_system-cache-favor.Description" xml:space="preserve">
+    <value>Makes the file cache more aggressive; best for servers or file-heavy work, not typical desktops.</value>
+  </data>
+  <data name="Tweak_optimize_system-cache-favor.Title" xml:space="preserve">
+    <value>Favor system cache</value>
+  </data>
+  <data name="Tweak_optimize_systemresponsiveness.Description" xml:space="preserve">
+    <value>Prioritizes active programs over background services.</value>
+  </data>
+  <data name="Tweak_optimize_systemresponsiveness.Title" xml:space="preserve">
+    <value>Background responsiveness</value>
+  </data>
+  <data name="Tweak_optimize_taskbar-animations-off.Description" xml:space="preserve">
+    <value>Stops the taskbar button and thumbnail animations.</value>
+  </data>
+  <data name="Tweak_optimize_taskbar-animations-off.Title" xml:space="preserve">
+    <value>Disable taskbar animations</value>
+  </data>
+  <data name="Tweak_optimize_transparency-disable.Description" xml:space="preserve">
+    <value>Turns off acrylic and transparency for a snappier desktop.</value>
+  </data>
+  <data name="Tweak_optimize_transparency-disable.Title" xml:space="preserve">
+    <value>Disable transparency effects</value>
+  </data>
+  <data name="Tweak_optimize_verbose-status.Description" xml:space="preserve">
+    <value>Shows detailed status text during startup and shutdown.</value>
+  </data>
+  <data name="Tweak_optimize_verbose-status.Title" xml:space="preserve">
+    <value>Verbose boot messages</value>
+  </data>
+  <data name="Tweak_optimize_visual-effects-performance.Description" xml:space="preserve">
+    <value>Sets the performance/quality selector to custom; pair it with the animation and transparency toggles for the full effect.</value>
+  </data>
+  <data name="Tweak_optimize_visual-effects-performance.Title" xml:space="preserve">
+    <value>Best visual performance</value>
+  </data>
+  <data name="Tweak_optimize_win32-long-paths.Description" xml:space="preserve">
+    <value>Allows paths longer than 260 characters.</value>
+  </data>
+  <data name="Tweak_optimize_win32-long-paths.Title" xml:space="preserve">
+    <value>Win32 long paths</value>
+  </data>
+  <data name="Tweak_optimize_win32-priority-separation.Description" xml:space="preserve">
+    <value>Biases the scheduler toward the foreground app instead of an even split.</value>
+  </data>
+  <data name="Tweak_optimize_win32-priority-separation.Title" xml:space="preserve">
+    <value>Foreground program boost</value>
+  </data>
+  <data name="Tweak_optimize_window-animation.Description" xml:space="preserve">
+    <value>Stops minimize/maximize animations for instant window response.</value>
+  </data>
+  <data name="Tweak_optimize_window-animation.Title" xml:space="preserve">
+    <value>Disable window animations</value>
+  </data>
+  <data name="Tweak_privacy_activity-history.Description" xml:space="preserve">
+    <value>Stops the timeline from collecting app and file usage.</value>
+  </data>
+  <data name="Tweak_privacy_activity-history.Title" xml:space="preserve">
+    <value>Disable activity history</value>
+  </data>
+  <data name="Tweak_privacy_advertising-id-policy.Description" xml:space="preserve">
+    <value>Machine-wide policy that turns the advertising ID off for every account on this PC.</value>
+  </data>
+  <data name="Tweak_privacy_advertising-id-policy.Title" xml:space="preserve">
+    <value>Block advertising ID by policy</value>
+  </data>
+  <data name="Tweak_privacy_advertising-id.Description" xml:space="preserve">
+    <value>Stops apps from using an advertising ID for cross-app tracking.</value>
+  </data>
+  <data name="Tweak_privacy_advertising-id.Title" xml:space="preserve">
+    <value>Disable advertising ID</value>
+  </data>
+  <data name="Tweak_privacy_app-impact-telemetry-off.Description" xml:space="preserve">
+    <value>Stops the Application Impact Telemetry agent recording which programs you run.</value>
+  </data>
+  <data name="Tweak_privacy_app-impact-telemetry-off.Title" xml:space="preserve">
+    <value>Disable app compatibility telemetry</value>
+  </data>
+  <data name="Tweak_privacy_app-launch-tracking.Description" xml:space="preserve">
+    <value>Stops Windows tracking app launches to highlight new installs.</value>
+  </data>
+  <data name="Tweak_privacy_app-launch-tracking.Title" xml:space="preserve">
+    <value>Disable app launch tracking</value>
+  </data>
+  <data name="Tweak_privacy_bing-search.Description" xml:space="preserve">
+    <value>Keeps start menu search off the web.</value>
+  </data>
+  <data name="Tweak_privacy_bing-search.Title" xml:space="preserve">
+    <value>Local-only start menu search</value>
+  </data>
+  <data name="Tweak_privacy_camera-access-off.Description" xml:space="preserve">
+    <value>Machine-wide consent store entry that denies camera access to every app.</value>
+  </data>
+  <data name="Tweak_privacy_camera-access-off.Title" xml:space="preserve">
+    <value>Block camera for all apps</value>
+  </data>
+  <data name="Tweak_privacy_ceip.Description" xml:space="preserve">
+    <value>Opts out of the Windows Customer Experience Improvement Program.</value>
+  </data>
+  <data name="Tweak_privacy_ceip.Title" xml:space="preserve">
+    <value>Disable Customer Experience program</value>
+  </data>
+  <data name="Tweak_privacy_clipboard-history.Description" xml:space="preserve">
+    <value>Stops Windows remembering everything you copy.</value>
+  </data>
+  <data name="Tweak_privacy_clipboard-history.Title" xml:space="preserve">
+    <value>Disable clipboard history</value>
+  </data>
+  <data name="Tweak_privacy_cloud-clipboard.Description" xml:space="preserve">
+    <value>Keeps clipboard content on this device only.</value>
+  </data>
+  <data name="Tweak_privacy_cloud-clipboard.Title" xml:space="preserve">
+    <value>Disable cloud clipboard sync</value>
+  </data>
+  <data name="Tweak_privacy_cortana.Description" xml:space="preserve">
+    <value>Turns off the Cortana assistant and its data collection.</value>
+  </data>
+  <data name="Tweak_privacy_cortana.Title" xml:space="preserve">
+    <value>Disable Cortana</value>
+  </data>
+  <data name="Tweak_privacy_edge-personalization.Description" xml:space="preserve">
+    <value>Stops Edge sending browsing data for personalized ads.</value>
+  </data>
+  <data name="Tweak_privacy_edge-personalization.Title" xml:space="preserve">
+    <value>Disable Edge personalization</value>
+  </data>
+  <data name="Tweak_privacy_error-reporting.Description" xml:space="preserve">
+    <value>Stops sending crash dumps and error reports to Microsoft.</value>
+  </data>
+  <data name="Tweak_privacy_error-reporting.Title" xml:space="preserve">
+    <value>Disable error reporting</value>
+  </data>
+  <data name="Tweak_privacy_feedback-notifications-off.Description" xml:space="preserve">
+    <value>Blocks Windows from asking for feedback through policy.</value>
+  </data>
+  <data name="Tweak_privacy_feedback-notifications-off.Title" xml:space="preserve">
+    <value>Never prompt for feedback</value>
+  </data>
+  <data name="Tweak_privacy_feedback.Description" xml:space="preserve">
+    <value>Stops Windows from asking for feedback.</value>
+  </data>
+  <data name="Tweak_privacy_feedback.Title" xml:space="preserve">
+    <value>Silence feedback requests</value>
+  </data>
+  <data name="Tweak_privacy_find-my-device-off.Description" xml:space="preserve">
+    <value>Stops this PC reporting its location to your Microsoft account.</value>
+  </data>
+  <data name="Tweak_privacy_find-my-device-off.Title" xml:space="preserve">
+    <value>Disable Find My Device</value>
+  </data>
+  <data name="Tweak_privacy_handwriting-sharing.Description" xml:space="preserve">
+    <value>Stops sharing handwriting samples to improve recognition.</value>
+  </data>
+  <data name="Tweak_privacy_handwriting-sharing.Title" xml:space="preserve">
+    <value>Disable handwriting data sharing</value>
+  </data>
+  <data name="Tweak_privacy_input-personalization.Description" xml:space="preserve">
+    <value>Stops collection of typing and inking data for personalization.</value>
+  </data>
+  <data name="Tweak_privacy_input-personalization.Title" xml:space="preserve">
+    <value>Disable typing personalization</value>
+  </data>
+  <data name="Tweak_privacy_inventory-collector-off.Description" xml:space="preserve">
+    <value>Stops the compatibility inventory scan that reports installed software.</value>
+  </data>
+  <data name="Tweak_privacy_inventory-collector-off.Title" xml:space="preserve">
+    <value>Disable app inventory collector</value>
+  </data>
+  <data name="Tweak_privacy_language-list-access.Description" xml:space="preserve">
+    <value>Stops websites accessing your preferred-languages list.</value>
+  </data>
+  <data name="Tweak_privacy_language-list-access.Title" xml:space="preserve">
+    <value>Block sites reading language list</value>
+  </data>
+  <data name="Tweak_privacy_location.Description" xml:space="preserve">
+    <value>Prevents apps and services from reading your location.</value>
+  </data>
+  <data name="Tweak_privacy_location.Title" xml:space="preserve">
+    <value>Disable location tracking</value>
+  </data>
+  <data name="Tweak_privacy_lockscreen-spotlight-off.Description" xml:space="preserve">
+    <value>Stops the lock screen rotating through Spotlight images.</value>
+  </data>
+  <data name="Tweak_privacy_lockscreen-spotlight-off.Title" xml:space="preserve">
+    <value>Static lock screen image</value>
+  </data>
+  <data name="Tweak_privacy_microphone-access-off.Description" xml:space="preserve">
+    <value>Machine-wide consent store entry that denies microphone access to every app.</value>
+  </data>
+  <data name="Tweak_privacy_microphone-access-off.Title" xml:space="preserve">
+    <value>Block microphone for all apps</value>
+  </data>
+  <data name="Tweak_privacy_online-speech.Description" xml:space="preserve">
+    <value>Keeps voice data on-device instead of cloud processing.</value>
+  </data>
+  <data name="Tweak_privacy_online-speech.Title" xml:space="preserve">
+    <value>Disable online speech recognition</value>
+  </data>
+  <data name="Tweak_privacy_recall.Description" xml:space="preserve">
+    <value>Blocks periodic screen snapshots used by AI recall features.</value>
+  </data>
+  <data name="Tweak_privacy_recall.Title" xml:space="preserve">
+    <value>Disable Recall snapshots</value>
+  </data>
+  <data name="Tweak_privacy_remote-assistance-off.Description" xml:space="preserve">
+    <value>Stops anyone sending you a Remote Assistance connection request.</value>
+  </data>
+  <data name="Tweak_privacy_remote-assistance-off.Title" xml:space="preserve">
+    <value>Block remote assistance invites</value>
+  </data>
+  <data name="Tweak_privacy_search-highlights.Description" xml:space="preserve">
+    <value>Removes sponsored and web highlights from Windows Search.</value>
+  </data>
+  <data name="Tweak_privacy_search-highlights.Title" xml:space="preserve">
+    <value>Disable search highlights</value>
+  </data>
+  <data name="Tweak_privacy_settings-suggestions-off.Description" xml:space="preserve">
+    <value>Stops suggested content appearing inside Settings and other inbox apps.</value>
+  </data>
+  <data name="Tweak_privacy_settings-suggestions-off.Title" xml:space="preserve">
+    <value>Disable in-app content suggestions</value>
+  </data>
+  <data name="Tweak_privacy_spotlight-off.Description" xml:space="preserve">
+    <value>Removes Spotlight suggestions from the lock screen and Start.</value>
+  </data>
+  <data name="Tweak_privacy_spotlight-off.Title" xml:space="preserve">
+    <value>Disable Windows Spotlight</value>
+  </data>
+  <data name="Tweak_privacy_suggested-apps.Description" xml:space="preserve">
+    <value>Stops automatic install of suggested third-party apps.</value>
+  </data>
+  <data name="Tweak_privacy_suggested-apps.Title" xml:space="preserve">
+    <value>Block suggested apps</value>
+  </data>
+  <data name="Tweak_privacy_tailored-experiences.Description" xml:space="preserve">
+    <value>Turns off personalized tips and ads based on diagnostic data.</value>
+  </data>
+  <data name="Tweak_privacy_tailored-experiences.Title" xml:space="preserve">
+    <value>Disable tailored experiences</value>
+  </data>
+  <data name="Tweak_privacy_telemetry-required.Description" xml:space="preserve">
+    <value>Clamps diagnostic data to the Required level — the middle step between full data and the minimal policy.</value>
+  </data>
+  <data name="Tweak_privacy_telemetry-required.Title" xml:space="preserve">
+    <value>Required diagnostics only</value>
+  </data>
+  <data name="Tweak_privacy_telemetry.Description" xml:space="preserve">
+    <value>Requests Security-level diagnostic data via policy; on Home/Pro builds that ignore level 0 the request is clamped to the lowest honored level.</value>
+  </data>
+  <data name="Tweak_privacy_telemetry.Title" xml:space="preserve">
+    <value>Minimal telemetry (policy)</value>
+  </data>
+  <data name="Tweak_privacy_wifi-sense.Description" xml:space="preserve">
+    <value>Stops sharing of Wi-Fi credentials with contacts.</value>
+  </data>
+  <data name="Tweak_privacy_wifi-sense.Title" xml:space="preserve">
+    <value>Disable Wi-Fi sharing</value>
+  </data>
+  <data name="Tweak_privacy_windows-tips-off.Description" xml:space="preserve">
+    <value>Stops Windows showing tips, tricks and suggestions during use.</value>
+  </data>
+  <data name="Tweak_privacy_windows-tips-off.Title" xml:space="preserve">
+    <value>Disable tips and suggestions</value>
   </data>
 </root>
