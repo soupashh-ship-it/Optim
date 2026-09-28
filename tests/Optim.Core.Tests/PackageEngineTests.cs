@@ -39,6 +39,34 @@ public class PackageEngineTests
     }
 
     [Fact]
+    public void Parse_survives_missing_source_column()
+    {
+        // Some winget builds/locale combos print without the trailing Source.
+        const string output = "Firefox           Mozilla.Firefox       130.0     131.0\n";
+        var single = Assert.Single(PackageEngine.ParseUpgradeTable(output));
+        Assert.Equal("Mozilla.Firefox", single.Id);
+        Assert.Equal("131.0", single.AvailableVersion);
+    }
+
+    [Fact]
+    public void Parse_survives_unknown_versions()
+    {
+        // --include-unknown prints Unknown for versions winget cannot detect.
+        const string output = "Some App          Vendor.SomeApp        Unknown   2.0.0     winget\n";
+        var single = Assert.Single(PackageEngine.ParseUpgradeTable(output));
+        Assert.Equal("Vendor.SomeApp", single.Id);
+        Assert.Equal("Unknown", single.InstalledVersion);
+    }
+
+    [Fact]
+    public void Parse_does_not_mistake_version_numbers_for_ids()
+    {
+        const string output = "Firefox           Mozilla.Firefox       130.0     131.0     winget\n";
+        var single = Assert.Single(PackageEngine.ParseUpgradeTable(output));
+        Assert.Equal("Mozilla.Firefox", single.Id);
+    }
+
+    [Fact]
     public void Search_parse_handles_match_values_with_spaces()
     {
         var output =

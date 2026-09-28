@@ -47,8 +47,11 @@ public sealed class PackageEngine
 
     /// <summary>
     /// Parses winget upgrade table output. Public for unit tests: winget table
-    /// formats vary by version and locale, so this skips headers, separators,
-    /// footers and status lines instead of assuming fixed columns.
+    /// formats vary by version and locale (and `winget upgrade` has no JSON
+    /// output as of winget 1.29), so this skips headers, separators, footers and
+    /// status lines, and locates each row's package id token first rather than
+    /// assuming a fixed column count — builds that drop the trailing Source
+    /// column or print Unknown versions still parse.
     /// </summary>
     public static IReadOnlyList<WingetPackage> ParseUpgradeTable(string stdout)
     {
@@ -74,43 +77,70 @@ public sealed class PackageEngine
                 continue;
             }
 
+            // Continuation lines of wrapped names carry no id of their own.
+            if (char.IsWhiteSpace(line[0]))
+            {
+                continue;
+            }
+
             var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 4 || char.IsWhiteSpace(line[0]))
-            {
-                continue;
-            }
 
-            // Columns: Name Id Version Available Source — Name may contain spaces,
-            // so anchor on the last 4 whitespace-separated tokens.
-            var id = parts[^4];
-            var installed = parts[^3];
-            var available = parts[^2];
-            var nameEnd = line.IndexOf(id, StringComparison.Ordinal);
-            if (nameEnd <= 0)
+            // Columns are Name Id Version Available [Source]: find the id token
+            // (package-shaped, lettered so version-like tokens never match) and
+            // read the two version tokens after it. Anchoring on the id instead
+            // of the end of the line survives a missing Source column.
+            for (var i = 0; i + 2 < parts.Length; i++)
             {
-                continue;
-            }
+                var candidate = parts[i];
+                if (!LooksLikePackageId(candidate) || !candidate.Any(char.IsLetter))
+                {
+                    continue;
+                }
 
-            // Ids are dotted/store-shaped: drop headers, versions and wrapped text.
-            if (!LooksLikePackageId(id))
-            {
-                continue;
-            }
+                if (!IsVersionToken(parts[i + 1]) || !IsVersionToken(parts[i + 2]))
+                {
+                    continue;
+                }
 
-                        // Guard against version-looking ids and header remnants.
-            if (id.Contains("---") || available.Contains("---"))
-            {
-                continue;
-            }
+                var idStart = IndexOfToken(line, parts, i);
+                if (idStart <= 0)
+                {
+                    continue;
+                }
 
-            packages.Add(new WingetPackage(
-                id,
-                line[..nameEnd].Trim(),
-                installed,
-                available));
+                packages.Add(new WingetPackage(
+                    candidate,
+                    line[..idStart].Trim(),
+                    parts[i + 1],
+                    parts[i + 2]));
+                break; // one package row per line
+            }
         }
 
         return packages;
+    }
+
+    /// <summary>Version columns are digit-led or the literal Unknown.</summary>
+    private static bool IsVersionToken(string token) =>
+        token.Length > 0
+        && (char.IsDigit(token[0]) || token.Equals("unknown", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Finds the character offset of parts[index] in the original line.</summary>
+    private static int IndexOfToken(string line, string[] parts, int index)
+    {
+        var pos = 0;
+        for (var i = 0; i <= index; i++)
+        {
+            pos = line.IndexOf(parts[i], pos, StringComparison.Ordinal);
+            if (pos < 0)
+            {
+                return -1;
+            }
+
+            pos += parts[i].Length;
+        }
+
+        return pos - parts[index].Length;
     }
 
     private static bool LooksLikeTableNoise(string lower)
