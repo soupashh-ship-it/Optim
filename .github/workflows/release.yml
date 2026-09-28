@@ -4,22 +4,36 @@ on:
   push:
     tags: ["v*"]
   # Also builds on demand. Without a tag it produces workflow artifacts only;
-  # with a tag (input below) it attaches the files to that GitHub release.
+  # with a tag input it creates/updates the release: body regenerated from the
+  # commits in the tag range, assets attached.
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to attach files to (e.g. v1.1.0). Leave empty to build artifacts only."
+        description: "Existing tag to publish (e.g. v1.1.0). Leave empty to build artifacts only."
         required: false
         type: string
 
+# contents:write creates/edits the release; id-token:write is for keyless OIDC
+# auth to Azure Artifact Signing when signing secrets are configured.
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
 jobs:
-  installer:
+  release:
     runs-on: windows-latest
-    permissions:
-      contents: write # required to upload files to the release
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The notes generator reads the commit range between tags, which
+          # needs full history, not the default single checked-out commit.
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -29,8 +43,8 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
-      # Tag builds (and dispatch runs with a tag input) name the files after
-      # the release so the assets always match the tag they ship under.
+      # Tag pushes name the files after the tag; dispatch runs use the tag
+      # input, and untagged dispatch runs just build artifacts.
       - name: Resolve version
         id: ver
         shell: pwsh
@@ -51,8 +65,53 @@ jobs:
         shell: pwsh
         run: ./scripts/build-installer.ps1 -SkipPublish -Version "${{ steps.ver.outputs.version }}"
 
-      # Always keep the files as workflow artifacts too, so dispatch runs
-      # without a tag still produce downloadable output.
+      # Real signing needs an Azure Artifact Signing (Trusted Signing) account:
+      # a self-signed cert would not change SmartScreen's verdict, so it is not
+      # offered. When the secrets exist the installer is signed and the next
+      # step fails the build on any invalid signature; otherwise this is
+      # skipped with a notice in the run summary.
+      - name: Sign with Azure Artifact Signing
+        id: sign
+        if: env.AZURE_TENANT_ID != '' && env.AZURE_CLIENT_ID != '' && env.AZURE_CLIENT_SECRET != ''
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ secrets.AZURE_CODESIGNING_ENDPOINT }}
+          signing-account-name: ${{ secrets.AZURE_CODESIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_CODESIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Verify signatures
+        if: steps.sign.conclusion == 'success'
+        shell: pwsh
+        run: |
+          $failures = @()
+          foreach ($f in Get-ChildItem release -Filter *.exe) {
+            $status = (Get-AuthenticodeSignature $_.FullName).Status
+            "  {0}: {1}" -f $f.Name, $status
+            if ($status -ne 'Valid') { $failures += $f.Name }
+          }
+          if ($failures.Count -gt 0) {
+            throw "Invalid signature on: $($failures -join ', ')"
+          }
+
+      - name: Signing skipped (secrets not configured)
+        if: steps.sign.conclusion != 'success'
+        shell: pwsh
+        run: |
+          $note = @(
+            '## Signing skipped',
+            'Set the AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET,',
+            'AZURE_CODESIGNING_ENDPOINT, AZURE_CODESIGNING_ACCOUNT and',
+            'AZURE_CODESIGNING_PROFILE repo secrets (Azure Artifact Signing) to',
+            'sign the installer. Until then SmartScreen warns about an unknown',
+            'publisher on the setup executable.'
+          ) -join [Environment]::NewLine
+          $note | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -62,19 +121,36 @@ jobs:
             release/*setup*.exe
           if-no-files-found: error
 
-      # Attach to the GitHub release itself. Fails loudly if the tag has no
-      # release page rather than silently creating a draft nobody asked for.
+      - name: Generate release notes
+        if: steps.ver.outputs.tag != ''
+        shell: pwsh
+        run: ./scripts/generate-release-notes.ps1 -Tag "${{ steps.ver.outputs.tag }}" -Out release-notes.md
+
+      - name: Create or update the release
+        if: steps.ver.outputs.tag != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo $env:GITHUB_REPOSITORY --title "Optim $tag" --notes-file release-notes.md
+          } else {
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY --title "Optim $tag" --notes-file release-notes.md
+          }
+          if ($LASTEXITCODE -ne 0) { throw "release create/edit failed" }
+
       - name: Attach files to the release
         if: steps.ver.outputs.tag != ''
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
           $files = Get-ChildItem release -File | Where-Object { $_.Name -like "*.zip" -or $_.Name -like "*setup*.exe" }
           if (-not $files) { throw "No release files found in release/." }
-          gh release view "${{ steps.ver.outputs.tag }}" --repo $env:GITHUB_REPOSITORY | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw "No release exists for tag ${{ steps.ver.outputs.tag }}. Create the release first." }
-          gh release upload "${{ steps.ver.outputs.tag }}" @($files).FullName --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload $tag @($files).FullName --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
-          Write-Output "Attached to release ${{ steps.ver.outputs.tag }}:"
+          Write-Output "Attached to release $tag :"
           $files | ForEach-Object { Write-Output "  $($_.Name) ($([Math]::Round($_.Length / 1MB, 1)) MB)" }

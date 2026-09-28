@@ -117,10 +117,26 @@ UAC, which is why the shipping format is a classic elevated installer that
 installs the self-contained payload; the portable zip stays available for
 people who would rather not install anything.
 
-CI builds and tests every push to `main` (`.github/workflows/build.yml`), and
-`.github/workflows/release.yml` publishes the portable build and the installer
-on a `v*` tag (or on demand). The app icon is generated from scratch by
-`scripts/generate-icon.ps1` — no external artwork.
+### Releases automation
+
+CI builds and tests every push to `main` (`.github/workflows/build.yml`).
+`.github/workflows/release.yml` runs on a `v*` tag (or on demand, with an
+optional tag input) and:
+
+- publishes the portable zip and the installer, named after the tag
+- signs the installer through **Azure Artifact Signing** when the
+  `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` /
+  `AZURE_CODESIGNING_ENDPOINT` / `AZURE_CODESIGNING_ACCOUNT` /
+  `AZURE_CODESIGNING_PROFILE` secrets are configured — and fails the build if
+  a signature does not verify. Without the secrets it skips signing with a
+  notice in the run summary (a self-signed certificate would not change
+  SmartScreen's verdict, so it is not offered)
+- regenerates the release body from the commits between the previous tag and
+  this one (`scripts/generate-release-notes.ps1`), creates or updates the
+  release, and attaches the files
+
+The app icon is generated from scratch by `scripts/generate-icon.ps1` — no
+external artwork.
 
 ## License
 
