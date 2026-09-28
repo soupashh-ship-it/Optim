@@ -15,12 +15,12 @@ function New-Master([int]$px) {
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
 
-    # Rounded-square gradient background (original Optim blue).
+    # Rounded-square gradient background in Optim's brand teal (#1B9AAA).
     $rect = New-Object System.Drawing.Rectangle(0, 0, $px, $px)
     $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
         $rect,
-        [System.Drawing.Color]::FromArgb(255, 14, 108, 188),
-        [System.Drawing.Color]::FromArgb(255, 6, 52, 96),
+        [System.Drawing.Color]::FromArgb(255, 27, 154, 170),
+        [System.Drawing.Color]::FromArgb(255, 9, 66, 84),
         [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal)
     $radius = [int]($px * 0.24)
     $path = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -32,12 +32,19 @@ function New-Master([int]$px) {
     $path.CloseFigure()
     $g.FillPath($brush, $path)
 
-    # White "O" gauge mark with a gap at top-right (tuning-dial motif).
     $penW = [Math]::Max(4, [int]($px * 0.075))
+    $pad = [int]($px * 0.24)
+
+    # Dim track ring behind the gauge sweep, so the mark reads as a dial.
+    $trackPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(70, 255, 255, 255), $penW)
+    $trackPen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $trackPen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $g.DrawArc($trackPen, $pad, $pad, $px - 2 * $pad, $px - 2 * $pad, 0, 360)
+
+    # White gauge sweep with a gap at top-right (tuning-dial motif).
     $pen = New-Object System.Drawing.Pen([System.Drawing.Color]::White, $penW)
     $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
     $pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
-    $pad = [int]($px * 0.24)
     $g.DrawArc($pen, $pad, $pad, $px - 2 * $pad, $px - 2 * $pad, 60, 300)
 
     # Accent dot in the gap.
@@ -47,7 +54,7 @@ function New-Master([int]$px) {
     $dotBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
     $g.FillEllipse($dotBrush, $cx - $dotR, $cy - $dotR, $dotR * 2, $dotR * 2)
 
-    $g.Dispose(); $brush.Dispose(); $sheen.Dispose(); $pen.Dispose(); $dotBrush.Dispose(); $path.Dispose()
+    $g.Dispose(); $brush.Dispose(); $trackPen.Dispose(); $pen.Dispose(); $dotBrush.Dispose(); $path.Dispose()
     return $bmp
 }
 

@@ -49,6 +49,16 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        var argv = Environment.GetCommandLineArgs();
+        for (var i = 0; i < argv.Length - 1; i++)
+        {
+            if (argv[i] is "--page" or "/page")
+            {
+                StartupPageTag = argv[i + 1];
+                break;
+            }
+        }
+
         Optim.Core.Logging.FileLogger.Info($"Session start — {Environment.OSVersion}, elevated: {Environment.IsPrivilegedProcess}");
         try
         {
@@ -65,6 +75,12 @@ public partial class App : Application
 
     /// <summary>The main window, assigned before activation so pages can resolve it.</summary>
     public static MainWindow? CurrentWindow { get; private set; }
+
+    /// <summary>
+    /// Optional startup route ("--page optimize" style, tag only). Lets docs
+    /// tooling open a specific page directly; unknown tags fall back to Home.
+    /// </summary>
+    public static string? StartupPageTag { get; private set; }
 
     /// <summary>
     /// Registry-backed per-user app settings. ApplicationData.Current throws for

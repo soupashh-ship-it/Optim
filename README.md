@@ -8,6 +8,16 @@ tuning, privacy hardening, and deep system insight into one clean Fluent app.
 
 > ✨ 100% original code — clean-room implementation, MIT licensed.
 
+| Home | Optimize |
+|---|---|
+| ![Home dashboard with live usage graphs](docs/screenshots/home.png) | ![System Optimizations tuning page](docs/screenshots/optimize.png) |
+| **Privacy** | **Features** |
+| ![Privacy hardening page](docs/screenshots/privacy.png) | ![Windows Features page](docs/screenshots/features.png) |
+| **Debloat** | **Services** |
+| ![Debloat page with installed apps](docs/screenshots/debloat.png) | ![Services management page](docs/screenshots/services.png) |
+| **Network** | |
+| ![Network adapters and DNS profiles](docs/screenshots/network.png) | |
+
 ## Features
 
 | Module      | What it does                                                              |
@@ -53,7 +63,9 @@ dotnet test tests/Optim.Core.Tests
 ```
 
 The app requests administrator elevation at launch (registry + service
-operations require it).
+operations require it). For docs tooling, `Optim.App.exe --page <tag>` opens a
+specific page directly (e.g. `--page optimize`); `scripts/capture-page.ps1`
+uses that to regenerate the screenshots above.
 
 ## Architecture
 

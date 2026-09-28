@@ -69,7 +69,13 @@ public sealed partial class ShellPage : Page
         Unloaded += (_, _) => ToastService.ToastRequested -= ShowToast;
         ToastService.ToastRequested += ShowToast;
 
-        Nav.SelectedItem = Nav.MenuItems[0];
+        // Honor the --page startup tag (docs/screenshots tooling); anything
+        // unknown or absent lands on Home.
+        var startup = App.StartupPageTag;
+        var target = startup is not null
+            ? Nav.MenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => (string?)i.Tag == startup)
+            : null;
+        Nav.SelectedItem = target ?? Nav.MenuItems[0];
     }
 
     /// <summary>Renders a transient toast notification. Click dismisses early.</summary>
