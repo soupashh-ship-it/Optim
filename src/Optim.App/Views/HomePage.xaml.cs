@@ -14,6 +14,12 @@ public sealed partial class HomePage : Page
 {
     private readonly MetricsEngine _metrics = App.Get<MetricsEngine>();
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1.5) };
+    private bool _sampling;
+
+    /// <summary>Counts cache: tab switches are cheap, re-enumerating installed
+    /// packages every visit is not. Short TTL keeps counts honest.</summary>
+    private static readonly TimeSpan CountsTtl = TimeSpan.FromSeconds(60);
+    private DateTimeOffset _countsAt = DateTimeOffset.MinValue;
 
     public HomePage()
     {
@@ -43,6 +49,12 @@ public sealed partial class HomePage : Page
     {
         try
         {
+            // Fresh enough from the last visit: skip the enumeration entirely.
+            if (DateTimeOffset.UtcNow - _countsAt < CountsTtl)
+            {
+                return;
+            }
+
             await Task.Delay(400);
             await LoadCountsAsync();
         }
@@ -53,9 +65,32 @@ public sealed partial class HomePage : Page
 
     private void Refresh()
     {
+        // PerformanceCounter reads take real time; keep them off the UI thread
+        // and skip the tick entirely when the previous sample is still running.
+        if (_sampling)
+        {
+            return;
+        }
+
+        _sampling = true;
+        _ = Task.Run(() => _metrics.Sample()).ContinueWith(t =>
+        {
+            _sampling = false;
+            if (!t.IsCompletedSuccessfully)
+            {
+                Optim.Core.Logging.FileLogger.Warn($"Metrics sample failed: {t.Exception?.GetBaseException().Message}");
+                return;
+            }
+
+            var sample = t.Result;
+            DispatcherQueue.TryEnqueue(() => ApplySample(sample));
+        });
+    }
+
+    private void ApplySample(Optim.Core.Metrics.UsageSample s)
+    {
         try
         {
-            var s = _metrics.Sample();
             CpuText.Text = s.CpuPercent.ToString("F0", CultureInfo.InvariantCulture) + "%";
             RamText.Text = s.RamPercent.ToString("F0", CultureInfo.InvariantCulture) + "%";
             DiskText.Text = s.DiskAvailable
@@ -97,7 +132,10 @@ public sealed partial class HomePage : Page
         catch (Exception ex)
         {
             Optim.Core.Logging.FileLogger.Warn($"Home counts: {ex.Message}");
+            return;
         }
+
+        _countsAt = DateTimeOffset.UtcNow;
     }
 
     private async void FlushDns_Click(object sender, RoutedEventArgs e)
