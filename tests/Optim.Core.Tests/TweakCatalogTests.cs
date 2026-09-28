@@ -56,6 +56,50 @@ public class TweakCatalogTests
     }
 
     [Fact]
+    public void Every_tweak_can_be_detected_against_the_live_system()
+    {
+        // The pages detect every tweak on load; Detect returns Unknown only when
+        // the registry read throws. This is the catalog-wide equivalent of
+        // opening each tuning page, without needing the UI.
+        var engine = new RegistryTweakEngine(new ChangeJournal(
+            Path.Combine(Path.GetTempPath(), "optim-catalog-probe.json")));
+        foreach (var tweak in TweakCatalog.All)
+        {
+            Assert.True(engine.Detect(tweak) != TweakState.Unknown,
+                $"{tweak.Id} could not be detected");
+        }
+    }
+
+    [Fact]
+    public void Every_registry_path_is_well_formed()
+    {
+        // Read-only: missing keys return null, malformed paths throw. Guards the
+        // catalog (and future additions) against typos that would only surface as
+        // runtime "Detect failed" noise.
+        foreach (var op in TweakCatalog.All.SelectMany(t => t.Apply.Concat(t.Revert)))
+        {
+            Assert.False(string.IsNullOrWhiteSpace(op.KeyPath));
+            var root = op.Hive == RegistryOperation.HKLM
+                ? Microsoft.Win32.Registry.LocalMachine
+                : Microsoft.Win32.Registry.CurrentUser;
+            using var key = root.OpenSubKey(op.KeyPath);
+        }
+    }
+
+    [Fact]
+    public void Every_tweak_has_a_visible_default_state_source()
+    {
+        // Detect compares live values against the Apply operations, so each one
+        // must name a value or explicitly delete one.
+        foreach (var tweak in TweakCatalog.All)
+        {
+            Assert.All(tweak.Apply,
+                op => Assert.True(op.DeleteKey || op.DeleteValue || op.Value is not null,
+                    $"{tweak.Id} has an apply op with no value"));
+        }
+    }
+
+    [Fact]
     public void DWord_operations_carry_integer_values()
     {
         foreach (var op in TweakCatalog.All.SelectMany(t => t.Apply.Concat(t.Revert)))
@@ -88,6 +132,31 @@ public class TweakCatalogTests
             var tweak = Assert.Single(TweakCatalog.All, t => t.Id == id);
             Assert.NotEmpty(tweak.Apply);
             Assert.NotEmpty(tweak.Revert);
+        }
+    }
+
+    [Fact]
+    public void Catalog_is_broad_enough_to_cover_the_breadth_areas()
+    {
+        // Breadth target: comparable optimizers ship well over a hundred tweaks.
+        Assert.True(TweakCatalog.All.Count >= 100,
+            $"catalog only has {TweakCatalog.All.Count} tweaks");
+
+        foreach (var category in new[] { TweakCategory.Optimize, TweakCategory.Privacy, TweakCategory.Features })
+        {
+            Assert.True(TweakCatalog.For(category).Count() >= 20,
+                $"{category} only has {TweakCatalog.For(category).Count()} tweaks");
+        }
+
+        var sections = TweakCatalog.All.Select(t => t.Section).ToHashSet(StringComparer.Ordinal);
+        foreach (var expected in new[]
+                 {
+                     "Gaming & Input", "Visual Speed", "Memory & Storage", "Network",
+                     "Diagnostics & Feedback", "Tracking & Ads", "Devices & Cameras",
+                     "AI & Copilot", "Windows Update", "Explorer & Desktop"
+                 })
+        {
+            Assert.Contains(expected, sections);
         }
     }
 

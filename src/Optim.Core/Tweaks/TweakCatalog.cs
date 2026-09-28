@@ -27,7 +27,13 @@ public static class TweakCatalog
         "features.autorun-disable", "features.update-notify",
         "features.no-auto-reboot", "features.exclude-drivers",
         "features.logon-blur-disable", "features.consumer-features-block",
-        "optimize.fullscreen-optimizations-off"
+        "optimize.fullscreen-optimizations-off",
+        // Breadth batch
+        "optimize.win32-priority-separation", "optimize.disable-ipv6",
+        "optimize.prefetch-disable", "optimize.superfetch-disable",
+        "optimize.system-cache-favor",
+        "privacy.camera-access-off", "privacy.microphone-access-off",
+        "features.maintenance-off", "features.defer-feature-updates"
     };
 
     /// <summary>
@@ -42,7 +48,13 @@ public static class TweakCatalog
         "optimize.power-throttling-off", "optimize.search-indexing",
         "optimize.fullscreen-optimizations-off",
         "features.hibernation", "features.update-notify",
-        "features.no-auto-reboot", "features.exclude-drivers"
+        "features.no-auto-reboot", "features.exclude-drivers",
+        // Breadth batch
+        "optimize.win32-priority-separation", "optimize.disable-ipv6",
+        "optimize.prefetch-disable", "optimize.superfetch-disable",
+        "optimize.system-cache-favor",
+        "privacy.camera-access-off", "privacy.microphone-access-off",
+        "features.maintenance-off", "features.defer-feature-updates"
     };
 
     private static readonly HashSet<string> BoldIds = new(StringComparer.Ordinal)
@@ -53,12 +65,17 @@ public static class TweakCatalog
     private static readonly HashSet<string> NotSuggestedIds = new(StringComparer.Ordinal)
     {
         "optimize.power-throttling-off", "optimize.fullscreen-optimizations-off",
-        "features.update-notify", "features.no-auto-reboot", "features.exclude-drivers"
+        "features.update-notify", "features.no-auto-reboot", "features.exclude-drivers",
+        // Breadth batch
+        "optimize.disable-ipv6", "optimize.prefetch-disable",
+        "optimize.superfetch-disable", "optimize.system-cache-favor",
+        "privacy.camera-access-off", "privacy.microphone-access-off",
+        "features.maintenance-off", "features.defer-feature-updates"
     };
 
     /// <summary>
     /// Display sections (Optim's own grouping). Applied in the tier pass so
-    /// the 71 entries stay declarative without per-entry edits.
+    /// the entries stay declarative without per-entry edits.
     /// </summary>
     private static readonly Dictionary<string, string> SectionMap = new(StringComparer.Ordinal)
     {
@@ -134,14 +151,58 @@ public static class TweakCatalog
         ["features.logon-blur-disable"] = "Explorer & Desktop",
         ["features.thispc-desktop"] = "Explorer & Desktop",
         ["features.consumer-features-block"] = "System Behavior",
-        ["features.dark-theme"] = "Explorer & Desktop"
+        ["features.dark-theme"] = "Explorer & Desktop",
+        // Breadth batch: Optimize
+        ["optimize.taskbar-animations-off"] = "Visual Speed",
+        ["optimize.balloon-tips-off"] = "Visual Speed",
+        ["optimize.fast-menu-hover"] = "Visual Speed",
+        ["optimize.win32-priority-separation"] = "System Core",
+        ["optimize.qos-reserve-disable"] = "Network",
+        ["optimize.disable-ipv6"] = "Network",
+        ["optimize.last-access-disable"] = "Memory & Storage",
+        ["optimize.skip-pagefile-clear"] = "Memory & Storage",
+        ["optimize.prefetch-disable"] = "Memory & Storage",
+        ["optimize.superfetch-disable"] = "Memory & Storage",
+        ["optimize.system-cache-favor"] = "Memory & Storage",
+        ["optimize.disable-restart-apps"] = "Startup & Shutdown",
+        ["optimize.gamebar-startup-off"] = "Gaming & Input",
+        // Breadth batch: Privacy
+        ["privacy.telemetry-required"] = "Diagnostics & Feedback",
+        ["privacy.feedback-notifications-off"] = "Diagnostics & Feedback",
+        ["privacy.app-impact-telemetry-off"] = "Diagnostics & Feedback",
+        ["privacy.inventory-collector-off"] = "Diagnostics & Feedback",
+        ["privacy.advertising-id-policy"] = "Tracking & Ads",
+        ["privacy.spotlight-off"] = "Tracking & Ads",
+        ["privacy.lockscreen-spotlight-off"] = "Tracking & Ads",
+        ["privacy.windows-tips-off"] = "Tracking & Ads",
+        ["privacy.settings-suggestions-off"] = "Tracking & Ads",
+        ["privacy.remote-assistance-off"] = "System & Cloud",
+        ["privacy.find-my-device-off"] = "System & Cloud",
+        ["privacy.camera-access-off"] = "Devices & Cameras",
+        ["privacy.microphone-access-off"] = "Devices & Cameras",
+        // Breadth batch: Features
+        ["features.copilot-button-hide"] = "AI & Copilot",
+        ["features.copilot-machine-policy"] = "AI & Copilot",
+        ["features.taskbar-left-align"] = "Taskbar & Shell",
+        ["features.taskbar-small-icons"] = "Taskbar & Shell",
+        ["features.taskview-button-hide"] = "Taskbar & Shell",
+        ["features.meet-now-hide"] = "Taskbar & Shell",
+        ["features.explorer-open-thispc"] = "Explorer & Desktop",
+        ["features.recent-files-off"] = "Explorer & Desktop",
+        ["features.sync-notifications-off"] = "Explorer & Desktop",
+        ["features.compact-mode"] = "Explorer & Desktop",
+        ["features.fast-startup-off"] = "System Behavior",
+        ["features.maintenance-off"] = "System Behavior",
+        ["features.store-auto-update-off"] = "System Behavior",
+        ["features.driver-search-order"] = "Windows Update",
+        ["features.defer-feature-updates"] = "Windows Update"
     };
 
     private static readonly Dictionary<TweakCategory, string[]> SectionOrder = new()
     {
-        [TweakCategory.Optimize] = new[] { "Power & Battery", "Startup & Shutdown", "Gaming & Input", "Visual Speed", "System Core" },
-        [TweakCategory.Privacy] = new[] { "Tracking & Ads", "Diagnostics & Feedback", "Input & Voice", "System & Cloud" },
-        [TweakCategory.Features] = new[] { "Taskbar & Shell", "Explorer & Desktop", "System Behavior", "Windows Update" }
+        [TweakCategory.Optimize] = new[] { "Power & Battery", "Startup & Shutdown", "Gaming & Input", "Visual Speed", "System Core", "Memory & Storage", "Network" },
+        [TweakCategory.Privacy] = new[] { "Tracking & Ads", "Diagnostics & Feedback", "Input & Voice", "System & Cloud", "Devices & Cameras" },
+        [TweakCategory.Features] = new[] { "Taskbar & Shell", "Explorer & Desktop", "System Behavior", "AI & Copilot", "Windows Update" }
     };
 
     /// <summary>Sort rank for grouped display; unknown sections sink to the end.</summary>
@@ -741,6 +802,7 @@ public static class TweakCatalog
                 new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme", RegistryValueHint.DWord, 1)
             }));
 
+        AddBreadthTweaks(list);
         AddLatencyTweaks(list);
 
         return list.Select(ApplyTiers).ToList();
@@ -836,5 +898,348 @@ public static class TweakCatalog
             Risk: TweakRisk.Moderate,
             Points: 8,
             Recommended: false));
+    }
+
+    /// <summary>
+    /// Breadth batch: closes the gap to comparable optimizers with gaming,
+    /// AI/Copilot, telemetry granularity, Windows Update, visual-effects and
+    /// memory/storage entries. Written from public Windows documentation; the
+    /// engine journals every write so each one stays exactly reversible.
+    /// </summary>
+    private static void AddBreadthTweaks(List<TweakDefinition> list)
+    {
+        // --------------------- Optimize: visual speed ---------------------
+        list.Add(new TweakDefinition(
+            "optimize.taskbar-animations-off", TweakCategory.Optimize,
+            "Disable taskbar animations",
+            "Stops the taskbar button and thumbnail animations.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAnimations", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAnimations", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "optimize.balloon-tips-off", TweakCategory.Optimize,
+            "Disable notification balloons",
+            "Stops legacy balloon tip popups from tray icons.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "optimize.fast-menu-hover", TweakCategory.Optimize,
+            "Instant menu hover response",
+            "Cuts the hover delay before menus and flyouts react.",
+            new[] { new RegistryOperation(HKCU, @"Control Panel\Mouse", "MouseHoverTime", RegistryValueHint.String, "100") },
+            new[] { new RegistryOperation(HKCU, @"Control Panel\Mouse", "MouseHoverTime", RegistryValueHint.String, "400") }));
+
+        // --------------------- Optimize: system core ---------------------
+        list.Add(new TweakDefinition(
+            "optimize.win32-priority-separation", TweakCategory.Optimize,
+            "Foreground program boost",
+            "Biases the scheduler toward the foreground app instead of an even split.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\PriorityControl", "Win32PrioritySeparation", RegistryValueHint.DWord, 38) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\PriorityControl", "Win32PrioritySeparation", RegistryValueHint.DWord, null, DeleteValue: true) },
+            RestartRequired: true));
+
+        list.Add(new TweakDefinition(
+            "optimize.qos-reserve-disable", TweakCategory.Optimize,
+            "Release reserved network bandwidth",
+            "Stops the QoS packet scheduler reserving a slice of every link.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\Psched", "NonBestEffortLimit", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\Psched", "NonBestEffortLimit", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "optimize.disable-ipv6", TweakCategory.Optimize,
+            "Disable IPv6 stack",
+            "Turns off IPv6 and its transition helpers; some VPNs, Xbox networking and home routers need it.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters", "DisabledComponents", RegistryValueHint.DWord, unchecked((int)0xFFFFFFFF)) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters", "DisabledComponents", RegistryValueHint.DWord, null, DeleteValue: true) },
+            RestartRequired: true));
+
+        // ------------------ Optimize: memory & storage ------------------
+        list.Add(new TweakDefinition(
+            "optimize.last-access-disable", TweakCategory.Optimize,
+            "Stop tracking file access times",
+            "Ends the NTFS last-access timestamp write on every file read.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\FileSystem", "NtfsDisableLastAccessUpdate", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\FileSystem", "NtfsDisableLastAccessUpdate", RegistryValueHint.DWord, null, DeleteValue: true) },
+            RestartRequired: true));
+
+        list.Add(new TweakDefinition(
+            "optimize.skip-pagefile-clear", TweakCategory.Optimize,
+            "Skip pagefile wipe at shutdown",
+            "Stops Windows overwriting the pagefile on every shutdown, which shortens power-off noticeably.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "ClearPageFileAtShutdown", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "ClearPageFileAtShutdown", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "optimize.prefetch-disable", TweakCategory.Optimize,
+            "Disable application prefetching",
+            "Stops the loader pre-reading app data; helps on slow SSDs and VMs, can slow cold launches on hard disks.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters", "EnablePrefetcher", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters", "EnablePrefetcher", RegistryValueHint.DWord, 3) },
+            RestartRequired: true));
+
+        list.Add(new TweakDefinition(
+            "optimize.superfetch-disable", TweakCategory.Optimize,
+            "Disable Superfetch",
+            "Stops background memory pre-population; useful on VMs and systems with aggressive disk use.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters", "EnableSuperfetch", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters", "EnableSuperfetch", RegistryValueHint.DWord, 3) },
+            RestartRequired: true));
+
+        list.Add(new TweakDefinition(
+            "optimize.system-cache-favor", TweakCategory.Optimize,
+            "Favor system cache",
+            "Makes the file cache more aggressive; best for servers or file-heavy work, not typical desktops.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "LargeSystemCache", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "LargeSystemCache", RegistryValueHint.DWord, 0) },
+            RestartRequired: true));
+
+        // ---------------- Optimize: startup & shutdown ----------------
+        list.Add(new TweakDefinition(
+            "optimize.disable-restart-apps", TweakCategory.Optimize,
+            "Do not reopen apps after sign-in",
+            "Skips relaunching the apps that were open when you signed out.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows NT\CurrentVersion\Winlogon", "RestartApps", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows NT\CurrentVersion\Winlogon", "RestartApps", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // -------------------- Optimize: gaming & input --------------------
+        list.Add(new TweakDefinition(
+            "optimize.gamebar-startup-off", TweakCategory.Optimize,
+            "No Game Bar on game launch",
+            "Stops the Game Bar panel appearing when a game starts.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\GameBar", "ShowStartupPanel", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\GameBar", "ShowStartupPanel", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // ------------------ Privacy: diagnostics granularity ------------------
+        list.Add(new TweakDefinition(
+            "privacy.telemetry-required", TweakCategory.Privacy,
+            "Required diagnostics only",
+            "Clamps diagnostic data to the Required level — the middle step between full data and the minimal policy.",
+            new[]
+            {
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", RegistryValueHint.DWord, 1),
+                new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry", RegistryValueHint.DWord, 1)
+            },
+            new[]
+            {
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", RegistryValueHint.DWord, null, DeleteValue: true),
+                new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry", RegistryValueHint.DWord, null, DeleteValue: true)
+            }));
+
+        list.Add(new TweakDefinition(
+            "privacy.feedback-notifications-off", TweakCategory.Privacy,
+            "Never prompt for feedback",
+            "Blocks Windows from asking for feedback through policy.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.app-impact-telemetry-off", TweakCategory.Privacy,
+            "Disable app compatibility telemetry",
+            "Stops the Application Impact Telemetry agent recording which programs you run.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AppCompat", "AITEnable", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AppCompat", "AITEnable", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.inventory-collector-off", TweakCategory.Privacy,
+            "Disable app inventory collector",
+            "Stops the compatibility inventory scan that reports installed software.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AppCompat", "DisableInventory", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AppCompat", "DisableInventory", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // ---------------------- Privacy: tracking & ads ----------------------
+        list.Add(new TweakDefinition(
+            "privacy.advertising-id-policy", TweakCategory.Privacy,
+            "Block advertising ID by policy",
+            "Machine-wide policy that turns the advertising ID off for every account on this PC.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo", "DisabledByGroupPolicy", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo", "DisabledByGroupPolicy", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.spotlight-off", TweakCategory.Privacy,
+            "Disable Windows Spotlight",
+            "Removes Spotlight suggestions from the lock screen and Start.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\CloudContent", "DisableWindowsSpotlightFeatures", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\CloudContent", "DisableWindowsSpotlightFeatures", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.lockscreen-spotlight-off", TweakCategory.Privacy,
+            "Static lock screen image",
+            "Stops the lock screen rotating through Spotlight images.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "RotatingLockScreenEnabled", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "RotatingLockScreenEnabled", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.windows-tips-off", TweakCategory.Privacy,
+            "Disable tips and suggestions",
+            "Stops Windows showing tips, tricks and suggestions during use.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.settings-suggestions-off", TweakCategory.Privacy,
+            "Disable in-app content suggestions",
+            "Stops suggested content appearing inside Settings and other inbox apps.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338388Enabled", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338388Enabled", RegistryValueHint.DWord, 1) }));
+
+        // ---------------------- Privacy: system & cloud ----------------------
+        list.Add(new TweakDefinition(
+            "privacy.remote-assistance-off", TweakCategory.Privacy,
+            "Block remote assistance invites",
+            "Stops anyone sending you a Remote Assistance connection request.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Remote Assistance", "fAllowToGetHelp", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Remote Assistance", "fAllowToGetHelp", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "privacy.find-my-device-off", TweakCategory.Privacy,
+            "Disable Find My Device",
+            "Stops this PC reporting its location to your Microsoft account.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\FindMyDevice", "AllowFindMyDevice", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\FindMyDevice", "AllowFindMyDevice", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // -------------------- Privacy: devices & cameras --------------------
+        list.Add(new TweakDefinition(
+            "privacy.camera-access-off", TweakCategory.Privacy,
+            "Block camera for all apps",
+            "Machine-wide consent store entry that denies camera access to every app.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam", "Value", RegistryValueHint.String, "Deny") },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam", "Value", RegistryValueHint.String, "Allow") }));
+
+        list.Add(new TweakDefinition(
+            "privacy.microphone-access-off", TweakCategory.Privacy,
+            "Block microphone for all apps",
+            "Machine-wide consent store entry that denies microphone access to every app.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone", "Value", RegistryValueHint.String, "Deny") },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone", "Value", RegistryValueHint.String, "Allow") }));
+
+        // ------------------------- Features: AI & Copilot -------------------------
+        list.Add(new TweakDefinition(
+            "features.copilot-button-hide", TweakCategory.Features,
+            "Hide Copilot from the taskbar",
+            "Removes the Copilot entry point for the current user.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowCopilotButton", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowCopilotButton", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "features.copilot-machine-policy", TweakCategory.Features,
+            "Disable Copilot machine-wide",
+            "Policy that turns Copilot off for every account; honored on builds that read it.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // ----------------------- Features: taskbar & shell -----------------------
+        list.Add(new TweakDefinition(
+            "features.taskbar-left-align", TweakCategory.Features,
+            "Left-align the taskbar",
+            "Moves taskbar icons back to the left edge.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAl", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAl", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "features.taskbar-small-icons", TweakCategory.Features,
+            "Small taskbar icons",
+            "Fits more buttons on the taskbar by shrinking icons.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarSmallIcons", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarSmallIcons", RegistryValueHint.DWord, 0) }));
+
+        list.Add(new TweakDefinition(
+            "features.taskview-button-hide", TweakCategory.Features,
+            "Hide Task View button",
+            "Removes the Task View button from the taskbar.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowTaskViewButton", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowTaskViewButton", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "features.meet-now-hide", TweakCategory.Features,
+            "Hide Meet Now",
+            "Removes the Meet Now (Skype) icon from the notification area.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "HideSCAMeetNow", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "HideSCAMeetNow", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // ---------------------- Features: explorer & desktop ----------------------
+        list.Add(new TweakDefinition(
+            "features.explorer-open-thispc", TweakCategory.Features,
+            "Open Explorer at This PC",
+            "Makes File Explorer start at This PC instead of Quick access.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "LaunchTo", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "LaunchTo", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "features.recent-files-off", TweakCategory.Features,
+            "Hide recent and frequent items",
+            "Stops Explorer listing recently used files and frequently visited folders.",
+            new[]
+            {
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowRecent", RegistryValueHint.DWord, 0),
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowFrequent", RegistryValueHint.DWord, 0),
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_TrackDocs", RegistryValueHint.DWord, 0)
+            },
+            new[]
+            {
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowRecent", RegistryValueHint.DWord, 1),
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowFrequent", RegistryValueHint.DWord, 1),
+                new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Start_TrackDocs", RegistryValueHint.DWord, 1)
+            }));
+
+        list.Add(new TweakDefinition(
+            "features.sync-notifications-off", TweakCategory.Features,
+            "Disable sync provider ads",
+            "Stops one-drive style sync providers advertising upgrade upsell banners in Explorer.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowSyncProviderNotifications", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowSyncProviderNotifications", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "features.compact-mode", TweakCategory.Features,
+            "Compact Explorer spacing",
+            "Tightens item spacing in Explorer lists to fit more per screen.",
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "UseCompactMode", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKCU, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "UseCompactMode", RegistryValueHint.DWord, 0) }));
+
+        // ---------------------- Features: system behavior ----------------------
+        list.Add(new TweakDefinition(
+            "features.fast-startup-off", TweakCategory.Features,
+            "Disable fast startup",
+            "Makes shutdown a true full shutdown, so firmware and dual-boot changes take effect.",
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Power", "HiberbootEnabled", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SYSTEM\CurrentControlSet\Control\Session Manager\Power", "HiberbootEnabled", RegistryValueHint.DWord, 1) },
+            RestartRequired: true));
+
+        list.Add(new TweakDefinition(
+            "features.maintenance-off", TweakCategory.Features,
+            "Disable automatic maintenance",
+            "Stops the scheduled idle maintenance tasks (defrag, updates, diagnostics).",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance", "MaintenanceDisabled", RegistryValueHint.DWord, 1) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance", "MaintenanceDisabled", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        list.Add(new TweakDefinition(
+            "features.store-auto-update-off", TweakCategory.Features,
+            "Disable Store auto-updates",
+            "Stops the Microsoft Store downloading app updates in the background.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\WindowsStore", "AutoDownload", RegistryValueHint.DWord, 2) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\WindowsStore", "AutoDownload", RegistryValueHint.DWord, null, DeleteValue: true) }));
+
+        // ----------------------- Features: Windows Update -----------------------
+        list.Add(new TweakDefinition(
+            "features.driver-search-order", TweakCategory.Features,
+            "Keep drivers off Windows Update",
+            "Tells Windows Update to stop offering driver packages for this PC.",
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching", "SearchOrderConfig", RegistryValueHint.DWord, 0) },
+            new[] { new RegistryOperation(HKLM, @"SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching", "SearchOrderConfig", RegistryValueHint.DWord, 1) }));
+
+        list.Add(new TweakDefinition(
+            "features.defer-feature-updates", TweakCategory.Features,
+            "Defer feature updates a year",
+            "Holds new Windows versions back for up to 365 days on builds that honor the policy.",
+            new[]
+            {
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", "DeferFeatureUpdates", RegistryValueHint.DWord, 1),
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", "DeferFeatureUpdatesPeriodInDays", RegistryValueHint.DWord, 365)
+            },
+            new[]
+            {
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", "DeferFeatureUpdates", RegistryValueHint.DWord, null, DeleteValue: true),
+                new RegistryOperation(HKLM, @"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", "DeferFeatureUpdatesPeriodInDays", RegistryValueHint.DWord, null, DeleteValue: true)
+            }));
     }
 }
