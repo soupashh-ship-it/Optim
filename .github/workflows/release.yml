@@ -3,12 +3,21 @@ name: release
 on:
   push:
     tags: ["v*"]
-  # Allows building the installer on demand without cutting a tag.
+  # Also builds on demand. Without a tag it produces workflow artifacts only;
+  # with a tag (input below) it attaches the files to that GitHub release.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to attach files to (e.g. v1.1.0). Leave empty to build artifacts only."
+        required: false
+        type: string
 
 jobs:
   installer:
     runs-on: windows-latest
+    permissions:
+      contents: write # required to upload files to the release
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,15 +29,31 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y --no-progress
 
+      # Tag builds (and dispatch runs with a tag input) name the files after
+      # the release so the assets always match the tag they ship under.
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $tag = ""
+          if ($env:GITHUB_REF_TYPE -eq "tag") { $tag = $env:GITHUB_REF_NAME }
+          elseif ("${{ inputs.tag }}" -ne "") { $tag = "${{ inputs.tag }}" }
+          $version = $tag -replace "^v", ""
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          Write-Output "version=$version tag=$tag"
+
       - name: Build portable payload
         shell: pwsh
-        run: ./scripts/publish-portable.ps1 -Configuration Release
+        run: ./scripts/publish-portable.ps1 -Configuration Release -Version "${{ steps.ver.outputs.version }}"
 
       - name: Build installer
         shell: pwsh
-        run: ./scripts/build-installer.ps1 -SkipPublish
+        run: ./scripts/build-installer.ps1 -SkipPublish -Version "${{ steps.ver.outputs.version }}"
 
-      - name: Upload release artifacts
+      # Always keep the files as workflow artifacts too, so dispatch runs
+      # without a tag still produce downloadable output.
+      - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Optim-release
@@ -36,3 +61,20 @@ jobs:
             release/*.zip
             release/*setup*.exe
           if-no-files-found: error
+
+      # Attach to the GitHub release itself. Fails loudly if the tag has no
+      # release page rather than silently creating a draft nobody asked for.
+      - name: Attach files to the release
+        if: steps.ver.outputs.tag != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = Get-ChildItem release -File | Where-Object { $_.Name -like "*.zip" -or $_.Name -like "*setup*.exe" }
+          if (-not $files) { throw "No release files found in release/." }
+          gh release view "${{ steps.ver.outputs.tag }}" --repo $env:GITHUB_REPOSITORY | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "No release exists for tag ${{ steps.ver.outputs.tag }}. Create the release first." }
+          gh release upload "${{ steps.ver.outputs.tag }}" @($files).FullName --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
+          Write-Output "Attached to release ${{ steps.ver.outputs.tag }}:"
+          $files | ForEach-Object { Write-Output "  $($_.Name) ($([Math]::Round($_.Length / 1MB, 1)) MB)" }

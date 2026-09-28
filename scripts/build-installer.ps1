@@ -7,14 +7,18 @@
 param(
     [string]$Configuration = "Release",
     # CI reuses the publish step's artifact instead of publishing twice.
-    [switch]$SkipPublish
+    [switch]$SkipPublish,
+    # Overrides the csproj version; CI passes the release tag.
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
 $env:PATH = "C:\Program Files\dotnet;" + $env:PATH
 $root = Split-Path -Parent $PSScriptRoot
 
-$version = (Select-Xml -LiteralPath "$root\src\Optim.App\Optim.App.csproj" -XPath "/Project/PropertyGroup/Version").Node.InnerText
+$version = if (-not [string]::IsNullOrWhiteSpace($Version)) { $Version } else {
+    (Select-Xml -LiteralPath "$root\src\Optim.App\Optim.App.csproj" -XPath "/Project/PropertyGroup/Version").Node.InnerText
+}
 if ([string]::IsNullOrWhiteSpace($version)) { $version = "1.0.0" }
 
 if (-not $SkipPublish) {

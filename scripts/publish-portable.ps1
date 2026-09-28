@@ -2,13 +2,19 @@
 # installer needed — unzip and run elevated).
 param(
     [string]$Configuration = "Release",
-    [string]$OutDir = "$PSScriptRoot\..\release"
+    [string]$OutDir = "$PSScriptRoot\..\release",
+    # Overrides the csproj version for the output names. CI passes the release
+    # tag so the files always match the release they are attached to, instead
+    # of silently drifting when the csproj lags a tag.
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
 $env:PATH = "C:\Program Files\dotnet;" + $env:PATH
 $root = Split-Path -Parent $PSScriptRoot
-$version = (Select-Xml -LiteralPath "$root\src\Optim.App\Optim.App.csproj" -XPath "/Project/PropertyGroup/Version").Node.InnerText
+$version = if (-not [string]::IsNullOrWhiteSpace($Version)) { $Version } else {
+    (Select-Xml -LiteralPath "$root\src\Optim.App\Optim.App.csproj" -XPath "/Project/PropertyGroup/Version").Node.InnerText
+}
 if ([string]::IsNullOrWhiteSpace($version)) { $version = "1.0.0" }
 
 $publishDir = Join-Path $OutDir "Optim-portable-$version"
