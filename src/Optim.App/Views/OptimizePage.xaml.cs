@@ -1,3 +1,4 @@
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Optim.App.Services;
@@ -53,19 +54,14 @@ public sealed partial class OptimizePage : TweakListPage
         right.Children.Add(controls);
         right.Children.Add(status);
 
-        var grid = new Grid { ColumnSpacing = 16 };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(text, 0);
-        Grid.SetColumn(right, 1);
-        grid.Children.Add(text);
-        grid.Children.Add(right);
-
-        var card = new Border
+        // Real SettingsCard: the power-plan row should hover and animate like
+        // every other settings row on the platform.
+        var card = new SettingsCard
         {
-            Style = (Style)Application.Current.Resources["SettingsCardStyle"],
             Margin = new Thickness(0, 8, 0, 0),
-            Child = grid
+            Header = text,
+            Content = right,
+            IsClickEnabled = false
         };
 
         apply.Click += (_, _) => _ = ApplyPlanAsync(engine, plans, status, apply);

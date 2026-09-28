@@ -1,3 +1,4 @@
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -715,7 +716,8 @@ public abstract class TweakListPage : Page
     private static Style CardDescStyle => _cardDescStyle ??= Lookup("CardDescStyle");
     private static Style CaptionStyle => _captionStyle ??= Lookup("CaptionTextBlockStyle");
     private static Style ToggleStyle => _toggleStyle ??= Lookup("RowToggleStyle");
-    private static Style CardStyle => _cardStyle ??= Lookup("SettingsCardStyle");
+    // Container style for the category hero (a panel, not a settings row).
+    private static Style CardStyle => _cardStyle ??= Lookup("CardBorderStyle");
 
     private static Style Lookup(string key) => (Style)Application.Current.Resources[key];
 
@@ -805,11 +807,6 @@ public abstract class TweakListPage : Page
                 ApplyToggleNow(row, toggle, wanted);
             };
 
-            var grid = new Grid { ColumnSpacing = 16 };
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
             // Right-aligned flow: impact, worth, kept-safe, details, state, switch.
             var actions = new StackPanel
             {
@@ -824,39 +821,22 @@ public abstract class TweakListPage : Page
             actions.Children.Add(stateLabel);
             actions.Children.Add(toggle);
 
-            Grid.SetColumn(icon, 0);
-            Grid.SetColumn(text, 1);
-            Grid.SetColumn(actions, 2);
-            grid.Children.Add(icon);
-            grid.Children.Add(text);
-            grid.Children.Add(actions);
-
+            // The row itself is the real CommunityToolkit SettingsCard, so it
+            // gets the platform hover/press animation instead of a hand-rolled
+            // pointer hack. The wrapper Border owns the arrival accent: its
+            // transparent border always reserves its width, so highlighting a
+            // card never shifts the layout.
             var card = new Border
             {
-                Style = CardStyle,
-                Child = grid
-            };
-
-            // Subtle hover feedback toward the SettingsCard look.
-            card.PointerEntered += (_, _) =>
-            {
-                try
+                BorderThickness = new Thickness(2),
+                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                CornerRadius = new CornerRadius(8),
+                Child = new SettingsCard
                 {
-                    if (Application.Current.Resources.TryGetValue("CardBackgroundFillColorSecondaryBrush", out var bg)
-                        && bg is Brush bgBrush)
-                    {
-                        card.Background = bgBrush;
-                    }
-                }
-                catch
-                {
-                }
-            };
-            card.PointerExited += (_, _) =>
-            {
-                try { card.ClearValue(Border.BackgroundProperty); }
-                catch
-                {
+                    Header = text,
+                    HeaderIcon = icon,
+                    Content = actions,
+                    IsClickEnabled = false
                 }
             };
 
@@ -1036,8 +1016,10 @@ public abstract class TweakListPage : Page
 
         try
         {
-            _highlightedCard.ClearValue(Border.BorderBrushProperty);
-            _highlightedCard.BorderThickness = new Thickness(1);
+            // Back to a transparent accent slot: the reserved 2px border keeps
+            // the row's layout identical to its highlighted state.
+            _highlightedCard.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            _highlightedCard.BorderThickness = new Thickness(2);
         }
         catch
         {

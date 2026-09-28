@@ -8,23 +8,16 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Card container used across all pages -->
+            <!-- Card container for panels that hold arbitrary content (graphs,
+                 info blocks). Settings rows use the CommunityToolkit SettingsCard
+                 control instead, which is a header + action row and would leave an
+                 empty header gutter if used as a plain container. -->
             <Style x:Key="CardBorderStyle" TargetType="Border">
                 <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
                 <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="8"/>
                 <Setter Property="Padding" Value="16"/>
-            </Style>
-
-            <!-- Settings-card row container: icon | text | content -->
-            <Style x:Key="SettingsCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="6"/>
-                <Setter Property="Padding" Value="14,10"/>
-                <Setter Property="MinHeight" Value="60"/>
             </Style>
 
             <Style x:Key="CardTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
