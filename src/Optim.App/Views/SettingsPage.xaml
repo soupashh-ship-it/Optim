@@ -6,23 +6,25 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="16">
-            <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
+            <TextBlock x:Uid="Settings_Title" Text="Settings" Style="{StaticResource TitleTextBlockStyle}"/>
 
             <!-- Section rows use the real CommunityToolkit SettingsCard, so they
                  share the platform's hover/press animation. ContentAlignment
                  Vertical stacks the group under its heading instead of squeezing
                  it into the right-hand column. -->
-            <controls:SettingsCard Header="Appearance"
+            <controls:SettingsCard x:Uid="Settings_Appearance"
+                                   Header="Appearance"
                                    ContentAlignment="Vertical"
                                    IsClickEnabled="False">
                 <RadioButtons x:Name="ThemeButtons" SelectionChanged="Theme_SelectionChanged">
-                    <RadioButton Content="Light" Tag="Light"/>
-                    <RadioButton Content="Dark" Tag="Dark"/>
-                    <RadioButton Content="Use system" Tag="Default" IsChecked="True"/>
+                    <RadioButton x:Uid="Settings_Theme_Light" Content="Light" Tag="Light"/>
+                    <RadioButton x:Uid="Settings_Theme_Dark" Content="Dark" Tag="Dark"/>
+                    <RadioButton x:Uid="Settings_Theme_System" Content="Use system" Tag="Default" IsChecked="True"/>
                 </RadioButtons>
             </controls:SettingsCard>
 
-            <controls:SettingsCard Header="Safety"
+            <controls:SettingsCard x:Uid="Settings_Safety"
+                                   Header="Safety"
                                    Description="Revert every registry change Optim has journaled, newest first. A restore point is belt and braces for everything else."
                                    ContentAlignment="Vertical"
                                    IsClickEnabled="False">
@@ -33,7 +35,8 @@
                 </StackPanel>
             </controls:SettingsCard>
 
-            <controls:SettingsCard Header="Backup"
+            <controls:SettingsCard x:Uid="Settings_Backup"
+                                   Header="Backup"
                                    Description="Export the tweaks currently applied so you can replay them on this PC later."
                                    ContentAlignment="Vertical"
                                    IsClickEnabled="False">
@@ -43,7 +46,8 @@
                 </StackPanel>
             </controls:SettingsCard>
 
-            <controls:SettingsCard Header="Logs"
+            <controls:SettingsCard x:Uid="Settings_Logs"
+                                   Header="Logs"
                                    ContentAlignment="Vertical"
                                    IsClickEnabled="False">
                 <StackPanel Orientation="Horizontal" Spacing="8">

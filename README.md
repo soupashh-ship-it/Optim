@@ -70,6 +70,22 @@ journaling, apply, revert and detect are all generic. Mark system-level
 tweaks advanced by adding their id to `AdvancedIds`. See
 [DESIGN.md](DESIGN.md) for the full design document.
 
+## Localization
+
+UI strings live in `src/Optim.App/Strings/en-US/Resources.resw`. XAML reads them
+through `x:Uid` (an element with `x:Uid="Nav_Home"` reads `Nav_Home.Content`);
+code reads them through `Optim.App.Localization.Loc.Get`, which always takes an
+English fallback so a missing key can never blank the UI.
+
+To add a language, copy the file to `Strings/<bcp-47-tag>/Resources.resw` (for
+example `Strings/de-DE/Resources.resw`) and translate the `<value>` elements.
+Keys must stay identical; any key a translation omits falls back to English, so
+shipping a partial translation is safe. No code changes are needed — the build
+picks the file up and MRT Core resolves it by the user's language.
+
+Current coverage is the shell and Settings surface (navigation labels, page
+headings, settings rows). Tweak titles and descriptions are still English-only.
+
 ## Releases
 
 ```powershell

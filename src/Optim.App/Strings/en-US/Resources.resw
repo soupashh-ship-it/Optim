@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!--
+    Optim's user-facing strings. This is the neutral (en-US) resource.
+
+    To add a language, copy this file to Strings/<bcp-47-tag>/Resources.resw
+    (for example Strings/de-DE/Resources.resw) and translate only the <value>
+    elements. Keys must stay identical; any key a translated file omits falls
+    back to the value here, so a partial translation is safe to ship.
+
+    XAML resolves these through x:Uid: an element with x:Uid="Nav_Home" reads
+    Nav_Home.Content, x:Uid on a SettingsCard reads .Header / .Description.
+    Code resolves them through Optim.App.Localization.Loc.Get, which always
+    takes an English fallback so a missing key can never blank the UI.
+  -->
+
+  <!-- Navigation labels -->
+  <data name="Nav_Home.Content" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_Optimize.Content" xml:space="preserve">
+    <value>Optimize</value>
+  </data>
+  <data name="Nav_Privacy.Content" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Nav_Features.Content" xml:space="preserve">
+    <value>Features</value>
+  </data>
+  <data name="Nav_Debloat.Content" xml:space="preserve">
+    <value>Debloat</value>
+  </data>
+  <data name="Nav_Services.Content" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="Nav_Processes.Content" xml:space="preserve">
+    <value>Processes</value>
+  </data>
+  <data name="Nav_Startup.Content" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="Nav_Packages.Content" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Nav_Network.Content" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="Nav_Security.Content" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Nav_Policies.Content" xml:space="preserve">
+    <value>Policies</value>
+  </data>
+  <data name="Nav_Repair.Content" xml:space="preserve">
+    <value>Repair</value>
+  </data>
+  <data name="Nav_Device.Content" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="Nav_Settings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_About.Content" xml:space="preserve">
+    <value>About</value>
+  </data>
+
+  <!-- Page headings (also the navigation payload the shell passes to a page) -->
+  <data name="Page_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Page_Optimize" xml:space="preserve">
+    <value>System Optimizations</value>
+  </data>
+  <data name="Page_Privacy" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Page_Features" xml:space="preserve">
+    <value>Windows Features</value>
+  </data>
+  <data name="Page_Debloat" xml:space="preserve">
+    <value>Debloat</value>
+  </data>
+  <data name="Page_Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="Page_Processes" xml:space="preserve">
+    <value>Processes</value>
+  </data>
+  <data name="Page_Startup" xml:space="preserve">
+    <value>Startup Apps</value>
+  </data>
+  <data name="Page_Packages" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Page_Network" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="Page_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Page_Policies" xml:space="preserve">
+    <value>Group Policies</value>
+  </data>
+  <data name="Page_Repair" xml:space="preserve">
+    <value>Repair</value>
+  </data>
+  <data name="Page_Device" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Page_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+
+  <!-- Settings page -->
+  <data name="Settings_Title.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_Appearance.Header" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_Safety.Header" xml:space="preserve">
+    <value>Safety</value>
+  </data>
+  <data name="Settings_Safety.Description" xml:space="preserve">
+    <value>Revert every registry change Optim has journaled, newest first. A restore point is belt and braces for everything else.</value>
+  </data>
+  <data name="Settings_Backup.Header" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="Settings_Backup.Description" xml:space="preserve">
+    <value>Export the tweaks currently applied so you can replay them on this PC later.</value>
+  </data>
+  <data name="Settings_Logs.Header" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Settings_Theme_Light.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_Theme_Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_Theme_System.Content" xml:space="preserve">
+    <value>Use system</value>
+  </data>
+
+  <!-- Shell -->
+  <data name="App_Name" xml:space="preserve">
+    <value>Optim</value>
+  </data>
+  <data name="Shell_Search.PlaceholderText" xml:space="preserve">
+    <value>Search tweaks, pages, apps…</value>
+  </data>
+</root>

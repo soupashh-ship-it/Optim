@@ -28,6 +28,7 @@
                    Width="18" Height="18"
                    VerticalAlignment="Center" Margin="12,0,0,0"/>
             <TextBlock Grid.Column="1"
+                       x:Uid="App_Name"
                        Text="Optim"
                        VerticalAlignment="Center"
                        Margin="8,0,0,0"
@@ -37,6 +38,7 @@
             <!-- Centered search box, hit-test visible inside drag region -->
             <AutoSuggestBox Grid.Column="3"
                             x:Name="TitleBarSearchBox"
+                            x:Uid="Shell_Search"
                             Width="360"
                             MinWidth="200"
                             QueryIcon="Find"
@@ -77,55 +79,55 @@
             OpenPaneLength="220"
             SelectionChanged="Nav_SelectionChanged">
             <NavigationView.MenuItems>
-                <NavigationViewItem Content="Home" Tag="home" Icon="Home"/>
+                <NavigationViewItem x:Uid="Nav_Home" Content="Home" Tag="home" Icon="Home"/>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Content="Optimize" Tag="optimize">
+                <NavigationViewItem x:Uid="Nav_Optimize" Content="Optimize" Tag="optimize">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xF259;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Privacy" Tag="privacy">
+                <NavigationViewItem x:Uid="Nav_Privacy" Content="Privacy" Tag="privacy">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE7B3;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Features" Tag="features">
+                <NavigationViewItem x:Uid="Nav_Features" Content="Features" Tag="features">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE74C;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Debloat" Tag="debloat">
+                <NavigationViewItem x:Uid="Nav_Debloat" Content="Debloat" Tag="debloat">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE74D;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Content="Services" Tag="services">
+                <NavigationViewItem x:Uid="Nav_Services" Content="Services" Tag="services">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE9F5;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Processes" Tag="processes">
+                <NavigationViewItem x:Uid="Nav_Processes" Content="Processes" Tag="processes">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xECAA;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Startup" Tag="startup">
+                <NavigationViewItem x:Uid="Nav_Startup" Content="Startup" Tag="startup">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE7B8;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Packages" Tag="packages">
+                <NavigationViewItem x:Uid="Nav_Packages" Content="Packages" Tag="packages">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE896;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Content="Network" Tag="network">
+                <NavigationViewItem x:Uid="Nav_Network" Content="Network" Tag="network">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE968;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Security" Tag="security">
+                <NavigationViewItem x:Uid="Nav_Security" Content="Security" Tag="security">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xEA18;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Policies" Tag="policies">
+                <NavigationViewItem x:Uid="Nav_Policies" Content="Policies" Tag="policies">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE9D5;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Repair" Tag="repair">
+                <NavigationViewItem x:Uid="Nav_Repair" Content="Repair" Tag="repair">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE90F;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="Device" Tag="device">
+                <NavigationViewItem x:Uid="Nav_Device" Content="Device" Tag="device">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE770;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
-                <NavigationViewItem Content="Settings" Tag="settings">
+                <NavigationViewItem x:Uid="Nav_Settings" Content="Settings" Tag="settings">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE713;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
-                <NavigationViewItem Content="About" Tag="about">
+                <NavigationViewItem x:Uid="Nav_About" Content="About" Tag="about">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE946;"/></NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.FooterMenuItems>

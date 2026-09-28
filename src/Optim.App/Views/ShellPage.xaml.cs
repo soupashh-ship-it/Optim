@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Optim.App.Localization;
 using Optim.App.Models;
 using Optim.App.Services;
 
@@ -30,24 +31,28 @@ public sealed partial class ShellPage : Page
         ["about"] = typeof(AboutPage)
     };
 
+    /// <summary>
+    /// Page headings, resolved from resources. The English text is the fallback
+    /// so a missing key degrades to today's wording instead of a blank header.
+    /// </summary>
     private static readonly Dictionary<string, string> PageTitles = new()
     {
-        ["home"] = "Home",
-        ["optimize"] = "System Optimizations",
-        ["privacy"] = "Privacy",
-        ["features"] = "Windows Features",
-        ["debloat"] = "Debloat",
-        ["services"] = "Services",
-        ["processes"] = "Processes",
-        ["startup"] = "Startup Apps",
-        ["packages"] = "Packages",
-        ["network"] = "Network",
-        ["security"] = "Security",
-        ["policies"] = "Group Policies",
-        ["repair"] = "Repair",
-        ["device"] = "Device",
-        ["settings"] = "Settings",
-        ["about"] = "About"
+        ["home"] = Loc.Get("Page_Home", "Home"),
+        ["optimize"] = Loc.Get("Page_Optimize", "System Optimizations"),
+        ["privacy"] = Loc.Get("Page_Privacy", "Privacy"),
+        ["features"] = Loc.Get("Page_Features", "Windows Features"),
+        ["debloat"] = Loc.Get("Page_Debloat", "Debloat"),
+        ["services"] = Loc.Get("Page_Services", "Services"),
+        ["processes"] = Loc.Get("Page_Processes", "Processes"),
+        ["startup"] = Loc.Get("Page_Startup", "Startup Apps"),
+        ["packages"] = Loc.Get("Page_Packages", "Packages"),
+        ["network"] = Loc.Get("Page_Network", "Network"),
+        ["security"] = Loc.Get("Page_Security", "Security"),
+        ["policies"] = Loc.Get("Page_Policies", "Group Policies"),
+        ["repair"] = Loc.Get("Page_Repair", "Repair"),
+        ["device"] = Loc.Get("Page_Device", "Device"),
+        ["settings"] = Loc.Get("Page_Settings", "Settings"),
+        ["about"] = Loc.Get("Page_About", "About")
     };
 
     /// <summary>Set while <see cref="NavigateTo"/> moves the selection, so the
