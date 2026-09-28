@@ -1,0 +1,13 @@
+# Optim code standards. The threading rule is deliberately visible but not a
+# build error: the hard gate for async void is the reflection audit in
+# Optim.Core.Tests (AsyncVoidAuditTests), which keeps the audited set explicit
+# and fails CI when an unreviewed handler appears.
+
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+
+[*.cs]
+dotnet_diagnostic.VSTHRD100.severity = warning  # Avoid async void methods
