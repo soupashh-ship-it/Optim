@@ -60,16 +60,29 @@ public static class SecurityPostureEngine
 
     private static SecurityItem SmartScreenStatus()
     {
-        return TryReadDword(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer", "SmartScreenEnabled") switch
+        // SmartScreenEnabled is a REG_SZ ("Off" / "Warn" / "RequireAdmin" /
+        // "Block"), not a DWORD. The old DWORD read turned "Off" into
+        // "On (default)" — a fail-open lie. Read the string directly.
+        string? value;
+        try
         {
-            (_, false) => Unknown("SmartScreen"),
-            (null, _) => new SecurityItem("SmartScreen", "On (default)", true,
-                "Screens downloads and apps against reputation."),
-            (2, _) => new SecurityItem("SmartScreen", "Off", false,
-                "Screens downloads and apps against reputation."),
-            _ => new SecurityItem("SmartScreen", "On", true,
+            using var key = Registry.LocalMachine.OpenSubKey(
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer");
+            value = key?.GetValue("SmartScreenEnabled") as string;
+        }
+        catch
+        {
+            return Unknown("SmartScreen");
+        }
+
+        return string.Equals(value, "Off", StringComparison.OrdinalIgnoreCase)
+            ? new SecurityItem("SmartScreen", "Off", false,
                 "Screens downloads and apps against reputation.")
-        };
+            : string.IsNullOrEmpty(value)
+                ? new SecurityItem("SmartScreen", "On (default)", true,
+                    "Screens downloads and apps against reputation.")
+                : new SecurityItem("SmartScreen", "On", true,
+                    "Screens downloads and apps against reputation.");
     }
 
     private static SecurityItem UacStatus()

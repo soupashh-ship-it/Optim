@@ -30,6 +30,14 @@ public sealed class ChangeJournal
     private readonly string _path;
     private static readonly object Gate = new();
 
+    /// <summary>
+    /// Safety cap on journal size. A decade of daily use at ~10 entries a day
+    /// stays far below this; the oldest entries are pruned first. Reverting a
+    /// pruned entry is no longer possible, but "revert all" always replays
+    /// what remains and pruned entries are the oldest, least-relevant changes.
+    /// </summary>
+    public const int MaxEntries = 20_000;
+
     /// <summary>Named mutex so two Optim instances never interleave journal writes.</summary>
     private static Mutex CrossProcessGate(string path)
     {
@@ -56,6 +64,12 @@ public sealed class ChangeJournal
             {
                 var entries = LoadUnsafe();
                 entries.Add(entry);
+                if (entries.Count > MaxEntries)
+                {
+                    // Drop the oldest entries first so the cap stays a bound on
+                    // the file, not a surprise data loss event.
+                    entries.RemoveRange(0, entries.Count - MaxEntries);
+                }
                 SaveUnsafe(entries);
             }
         }

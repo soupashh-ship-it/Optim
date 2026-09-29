@@ -270,6 +270,12 @@ public sealed partial class ServicesPage : Page
         }
     }
 
+    /// <summary>Search-as-you-type; Enter still applies for muscle memory.</summary>
+    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _ = ApplyFilterAsync();
+    }
+
     private void SearchBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)

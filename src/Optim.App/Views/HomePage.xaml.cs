@@ -119,15 +119,23 @@ public sealed partial class HomePage : Page
     {
         try
         {
-            // PackageManager is UI-affinitized: enumerate packages on the UI thread.
-            var apps = App.Get<DebloatEngine>().ListInstalled().Count;
-            AppsCountText.Text = apps.ToString(CultureInfo.InvariantCulture);
+            // Services and processes enumerate happily off the UI thread; run
+            // them concurrently so their numbers paint while the (UI-affinitized)
+            // package enumeration below is still pending.
+            var servicesTask = Task.Run(() => App.Get<ServiceEngine>().List().Count);
+            var processesTask = Task.Run(ProcessEngine.Snapshot);
 
-            var services = await Task.Run(() => App.Get<ServiceEngine>().List().Count);
+            // PackageManager is UI-affinitized (per-thread WinRT objects): the
+            // enumeration itself must stay on the UI thread, so it runs last —
+            // after services/processes are already counted and painted.
+            var services = await servicesTask;
             ServicesCountText.Text = services.ToString(CultureInfo.InvariantCulture);
 
-            var processes = await Task.Run(ProcessEngine.Snapshot);
+            var processes = await processesTask;
             ProcessesCountText.Text = processes.Count.ToString(CultureInfo.InvariantCulture);
+
+            var apps = App.Get<DebloatEngine>().ListInstalled().Count;
+            AppsCountText.Text = apps.ToString(CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {

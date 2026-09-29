@@ -28,6 +28,16 @@ public sealed class PackageRow : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 
+/// <summary>Simple selection row for the reinstall picker (no INPC: the dialog reads the final state once).</summary>
+public sealed class ReinstallRow
+{
+    public ReinstallRow(AppPackage pkg) => Pkg = pkg;
+    public AppPackage Pkg { get; }
+    public string DisplayName => Pkg.DisplayName;
+    public string Family => Pkg.PackageFamilyName;
+    public bool IsChecked { get; set; }
+}
+
 public sealed partial class DebloatPage : Page
 {
     private readonly DebloatEngine _engine = App.Get<DebloatEngine>();
@@ -190,6 +200,100 @@ public sealed partial class DebloatPage : Page
         {
             _busy = false;
             Busy.IsActive = false;
+        }
+    }
+
+    private async void Reinstall_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy || XamlRoot is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Provisioned enumeration is PackageManager work: off the UI thread.
+            var provisioned = await Task.Run(DebloatEngine.ListProvisioned);
+            if (provisioned.Count == 0)
+            {
+                await new ContentDialog
+                {
+                    Title = "Reinstall apps",
+                    Content = "No provisioned apps were found on this machine.",
+                    CloseButtonText = "OK",
+                    XamlRoot = XamlRoot
+                }.ShowAsync();
+                return;
+            }
+
+            var rows = provisioned.Select(p => new ReinstallRow(p)).ToList();
+            var panel = new StackPanel { Spacing = 2 };
+            foreach (var row in rows)
+            {
+                var text = new StackPanel { Spacing = 0 };
+                text.Children.Add(new TextBlock { Text = row.DisplayName });
+                text.Children.Add(new TextBlock
+                {
+                    Text = row.Family,
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                    Opacity = 0.6
+                });
+                var cb = new CheckBox { Content = text, Margin = new Thickness(0, 2, 0, 2) };
+                cb.Checked += (_, _) => row.IsChecked = true;
+                cb.Unchecked += (_, _) => row.IsChecked = false;
+                panel.Children.Add(cb);
+            }
+
+            var scroll = new ScrollViewer { MaxHeight = 380, Content = panel };
+            var confirm = new ContentDialog
+            {
+                Title = "Reinstall built-in apps",
+                Content = scroll,
+                PrimaryButtonText = "Reinstall",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var picked = rows.Where(r => r.IsChecked).Select(r => r.Pkg.PackageFamilyName).ToList();
+            if (picked.Count == 0)
+            {
+                return;
+            }
+
+            _busy = true;
+            Busy.IsActive = true;
+            try
+            {
+                CountText.Text = $"Reinstalling {TuneKit.Count(picked.Count, "app", "apps")}…";
+                var results = await _engine.ReinstallAsync(picked,
+                    name => CountText.Text = $"Reinstalling '{name}'…");
+                var okCount = results.Values.Count(v => v is "Registered" or "Already present");
+                var failed = picked.Count - okCount;
+                await new ContentDialog
+                {
+                    Title = "Finished",
+                    Content = failed == 0
+                        ? $"{TuneKit.Count(okCount, "app", "apps")} restored for this user."
+                        : $"{TuneKit.Count(okCount, "app", "apps")} restored, {failed} failed — see logs.",
+                    CloseButtonText = "OK",
+                    XamlRoot = XamlRoot
+                }.ShowAsync();
+                await LoadAsync();
+            }
+            finally
+            {
+                _busy = false;
+                Busy.IsActive = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"Reinstall: {ex.Message}");
         }
     }
 }

@@ -52,6 +52,7 @@ public class AsyncVoidAuditTests
         "Optim.App.Views.SettingsPage.Export_Click",
         "Optim.App.Views.SettingsPage.Import_Click",
         "Optim.App.Views.SettingsPage.ViewLogs_Click",
+        "Optim.App.Views.SettingsPage.Language_SelectionChanged",
 
         // Packages: scan/upgrade/search/install with CTS + guarded bodies.
         "Optim.App.Views.PackagesPage.Scan_Click",
@@ -66,13 +67,18 @@ public class AsyncVoidAuditTests
         "Optim.App.Views.StartupPage.Add_Click",
         "Optim.App.Views.ProcessesPage.Load",
         "Optim.App.Views.ProcessesPage.EndTask_Click",
+        "Optim.App.Views.ProcessesPage.Priority_Click",
+        "Optim.App.Views.ProcessesPage.Affinity_Click",
         "Optim.App.Views.DebloatPage.Refresh_Click",
         "Optim.App.Views.DebloatPage.Uninstall_Click",
+        "Optim.App.Views.DebloatPage.Reinstall_Click",
 
         // Network/Device/Security/Policies/Repair/About handlers, guarded.
         "Optim.App.Views.NetworkPage.RefreshAdapters",
         "Optim.App.Views.NetworkPage.ApplyDns_Click",
         "Optim.App.Views.NetworkPage.ResetDns_Click",
+        "Optim.App.Views.NetworkPage.ApplyCustomDns_Click",
+        "Optim.App.Views.NetworkPage.ToggleAdapter_Click",
         "Optim.App.Views.NetworkPage.Flush_Click",
         "Optim.App.Views.DevicePage.Refresh_Click",
         "Optim.App.Views.DevicePage.ExportDrivers_Click",

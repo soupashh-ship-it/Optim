@@ -142,6 +142,15 @@
   <data name="Settings_Backup.Description" xml:space="preserve">
     <value>Export the tweaks currently applied so you can replay them on this PC later.</value>
   </data>
+  <data name="Settings_Language.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_Language.Description" xml:space="preserve">
+    <value>Display language for Optim. Some parts apply immediately; the rest after a relaunch.</value>
+  </data>
+  <data name="Settings_Language_Restart.Message" xml:space="preserve">
+    <value>Language saved. Some parts apply now — restart Optim to switch everything.</value>
+  </data>
   <data name="Settings_Logs.Header" xml:space="preserve">
     <value>Logs</value>
   </data>
@@ -160,6 +169,9 @@
   </data>
   <data name="Shell_Search.PlaceholderText" xml:space="preserve">
     <value>Search tweaks, pages, apps…</value>
+  </data>
+  <data name="Shell_Search.AutomationProperties.Name" xml:space="preserve">
+    <value>Search</value>
   </data>
   <data name="Tweak_features_action-center.Description" xml:space="preserve">
     <value>Hides notifications and the quick settings flyout.</value>

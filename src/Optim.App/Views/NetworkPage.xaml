@@ -21,6 +21,7 @@
             <ComboBox x:Name="AdapterBox" MinWidth="220" PlaceholderText="Select adapter"/>
             <Button Content="Refresh" Click="Refresh_Click"/>
             <Button Content="Flush DNS" Click="Flush_Click"/>
+            <Button x:Name="ToggleAdapterBtn" Content="Disable adapter" Click="ToggleAdapter_Click"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
@@ -29,7 +30,13 @@
             <Button Content="Reset to automatic" Click="ResetDns_Click"/>
         </StackPanel>
 
-        <ListView x:Name="AdapterList" Grid.Row="3">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+            <TextBox x:Name="CustomPrimaryBox" MinWidth="200" PlaceholderText="Custom primary DNS (IPv4 or IPv6)"/>
+            <TextBox x:Name="CustomSecondaryBox" MinWidth="200" PlaceholderText="Secondary (optional)"/>
+            <Button Content="Apply custom DNS" Click="ApplyCustomDns_Click"/>
+        </StackPanel>
+
+        <ListView x:Name="AdapterList" Grid.Row="4">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="4" ColumnSpacing="12">
@@ -49,6 +56,6 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <InfoBar x:Name="ResultInfo" Grid.Row="3" VerticalAlignment="Bottom" IsOpen="False" IsClosable="True"/>
+        <InfoBar x:Name="ResultInfo" Grid.Row="4" VerticalAlignment="Bottom" IsOpen="False" IsClosable="True"/>
     </Grid>
 </Page>

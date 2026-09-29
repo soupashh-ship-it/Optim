@@ -18,6 +18,9 @@ public sealed partial class UsageGraph : UserControl
 
     public int Capacity { get; set; } = 60;
 
+    /// <summary>Cadence of AddValue calls, used to label the hover readout's "-Ns" age.</summary>
+    public double SecondsPerSample { get; set; } = 1.5;
+
     public UsageGraph()
     {
         InitializeComponent();
@@ -34,6 +37,44 @@ public sealed partial class UsageGraph : UserControl
         PlotCanvas.Children.Add(_line);
 
         SizeChanged += (_, _) => { _gridDirty = true; Render(); };
+
+        // Hover readout: translate pointer X back into a sample index. The
+        // badge is informational only and must never throw from a race with
+        // layout (ActualWidth can be 0 before the first measure).
+        PointerMoved += Graph_PointerMoved;
+        PointerExited += (_, _) => HoverBadge.Visibility = Visibility.Collapsed;
+    }
+
+    private void Graph_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            var w = PlotCanvas.ActualWidth;
+            if (w < 10 || _values.Count == 0)
+            {
+                HoverBadge.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var x = e.GetCurrentPoint(this).Position.X;
+            var step = Capacity > 1 ? w / (Capacity - 1) : w;
+            var startX = w - (_values.Count - 1) * step;
+            var index = (int)Math.Round((x - startX) / step);
+            if (index < 0 || index >= _values.Count)
+            {
+                HoverBadge.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var age = _values.Count - 1 - index;
+            HoverText.Text = _values[index].ToString("F0") + "%"
+                + (age == 0 ? " · now" : $" · -{age * SecondsPerSample:0}s");
+            HoverBadge.Visibility = Visibility.Visible;
+        }
+        catch
+        {
+            HoverBadge.Visibility = Visibility.Collapsed;
+        }
     }
 
     public void AddValue(double percent)

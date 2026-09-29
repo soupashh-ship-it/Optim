@@ -22,6 +22,7 @@
             <Button x:Name="RefreshBtn" Content="Refresh" Click="Refresh_Click"/>
             <Button x:Name="SelectAllBtn" Content="Select all" Click="SelectAll_Click"/>
             <Button x:Name="UninstallBtn" Content="Uninstall selected" Click="Uninstall_Click" Style="{StaticResource BrandButtonStyle}"/>
+            <Button x:Name="ReinstallBtn" Content="Reinstall apps…" Click="Reinstall_Click"/>
             <ProgressRing x:Name="Busy" IsActive="False" Width="24" Height="24"/>
             <TextBlock x:Name="CountText" VerticalAlignment="Center" Opacity="0.5"/>
         </StackPanel>

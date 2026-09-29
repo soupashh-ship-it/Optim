@@ -63,6 +63,20 @@ public sealed partial class ShellPage : Page
     {
         InitializeComponent();
 
+        // Ctrl+F focuses the global search box: the one shortcut a tweak
+        // catalog-style app needs to be keyboard-complete.
+        var ctrlF = new KeyboardAccelerator
+        {
+            Key = Windows.System.VirtualKey.F,
+            Modifiers = Windows.System.VirtualKeyModifiers.Control
+        };
+        ctrlF.Invoked += (_, args) =>
+        {
+            TitleBarSearchBox.Focus(FocusState.Programmatic);
+            args.Handled = true;
+        };
+        KeyboardAccelerators.Add(ctrlF);
+
         // Defer window wiring to Loaded: the window instance does not exist while
         // this page is being constructed inside its content tree.
         Loaded += (_, _) => WireTitleBar();

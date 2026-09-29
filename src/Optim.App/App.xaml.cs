@@ -40,6 +40,18 @@ public partial class App : Application
 
         _services = ConfigureServices();
 
+        // Language override saved by Settings: Loc resolves strings through an
+        // override resource context so code-resolved text picks it up. Empty
+        // value = follow the system language.
+        try
+        {
+            Optim.App.Localization.Loc.OverrideLanguage = AppSettings.GetString("Language");
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Warn($"Language override: {ex.Message}");
+        }
+
         UnhandledException += (_, e) =>
         {
             Optim.Core.Logging.FileLogger.Error($"UnhandledException: {e.Message}\n{e.Exception}");

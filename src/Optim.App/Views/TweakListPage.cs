@@ -712,10 +712,11 @@ public abstract class TweakListPage : Page
     private static Style? _toggleStyle;
     private static Style? _cardStyle;
 
-    private static Style CardTitleStyle => _cardTitleStyle ??= Lookup("CardTitleStyle");
-    private static Style CardDescStyle => _cardDescStyle ??= Lookup("CardDescStyle");
+    // protected: derived pages (Features DISM section) compose rows with the same styles.
+    protected static Style CardTitleStyle => _cardTitleStyle ??= Lookup("CardTitleStyle");
+    protected static Style CardDescStyle => _cardDescStyle ??= Lookup("CardDescStyle");
     private static Style CaptionStyle => _captionStyle ??= Lookup("CaptionTextBlockStyle");
-    private static Style ToggleStyle => _toggleStyle ??= Lookup("RowToggleStyle");
+    protected static Style ToggleStyle => _toggleStyle ??= Lookup("RowToggleStyle");
     // Container style for the category hero (a panel, not a settings row).
     private static Style CardStyle => _cardStyle ??= Lookup("CardBorderStyle");
 

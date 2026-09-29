@@ -31,6 +31,13 @@ public sealed partial class ProcessesPage : Page
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
         ProcessList.ItemsSource = _rows;
         ProcessList.ItemContainerTransitions?.Clear();
+        ProcessList.SelectionChanged += (_, _) =>
+        {
+            var has = ProcessList.SelectedItem is ProcessRow;
+            EndTaskBtn.IsEnabled = has;
+            PriorityBtn.IsEnabled = has;
+            AffinityBtn.IsEnabled = has;
+        };
         Loaded += (_, _) =>
         {
             Load(force: false);
@@ -100,12 +107,10 @@ public sealed partial class ProcessesPage : Page
             : $"{_rows.Count} of {_allRows.Count} processes match";
     }
 
-    private void SearchBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    /// <summary>Search-as-you-type: Enter keeps working for muscle memory.</summary>
+    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (e.Key == Windows.System.VirtualKey.Enter)
-        {
-            _ = ApplyFilterAsync();
-        }
+        _ = ApplyFilterAsync();
     }
 
     private void AutoRefresh_Click(object sender, RoutedEventArgs e)
@@ -141,6 +146,175 @@ public sealed partial class ProcessesPage : Page
     }
 
     private void Refresh_Click(object sender, RoutedEventArgs e) => Load(force: true);
+
+    private async void Priority_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ProcessList.SelectedItem is not ProcessRow row || XamlRoot is null)
+            {
+                return;
+            }
+
+            if (ProcessEngine.IsCritical(row.Pid, row.Name))
+            {
+                CountText.Text = $"'{row.Name}' is a critical system process; its priority cannot be changed here.";
+                return;
+            }
+
+            var current = await Task.Run(() => ProcessEngine.GetPriorityLabel(row.Pid));
+            var combo = new ComboBox
+            {
+                MinWidth = 220,
+                DisplayMemberPath = "Label",
+                ItemsSource = ProcessEngine.Priorities.Where(p => p.Value != 0x00000100).ToList(),
+                PlaceholderText = "Pick a priority class"
+            };
+            if (current is not null)
+            {
+                combo.SelectedIndex = ProcessEngine.Priorities
+                    .Where(p => p.Value != 0x00000100)
+                    .ToList()
+                    .FindIndex(p => p.Label == current);
+            }
+
+            var panel = new StackPanel { Spacing = 10 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"'{row.Name}' (PID {row.Pid}). Realtime is refused on purpose; High is enough for games.",
+                TextWrapping = TextWrapping.Wrap
+            });
+            panel.Children.Add(combo);
+
+            var confirm = new ContentDialog
+            {
+                Title = "Set priority",
+                Content = panel,
+                PrimaryButtonText = "Apply",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary || combo.SelectedItem is not ProcessEngine.PriorityChoice choice)
+            {
+                return;
+            }
+
+            var ok = await Task.Run(() => ProcessEngine.SetPriority(row.Pid, choice.Value));
+            CountText.Text = ok
+                ? $"Priority of '{row.Name}' set to {choice.Label}."
+                : $"Could not set priority for '{row.Name}' — see logs.";
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"Priority_Click: {ex}");
+            CountText.Text = "Priority change failed — see logs.";
+        }
+    }
+
+    private async void Affinity_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ProcessList.SelectedItem is not ProcessRow row || XamlRoot is null)
+            {
+                return;
+            }
+
+            if (ProcessEngine.IsCritical(row.Pid, row.Name))
+            {
+                CountText.Text = $"'{row.Name}' is a critical system process; its affinity cannot be changed here.";
+                return;
+            }
+
+            var current = await Task.Run(() => ProcessEngine.GetAffinityMask(row.Pid));
+            if (current is null)
+            {
+                CountText.Text = $"Could not read the affinity of '{row.Name}'.";
+                return;
+            }
+
+            var cores = Environment.ProcessorCount;
+            var panel = new StackPanel { Spacing = 8 };
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"'{row.Name}' (PID {row.Pid}) may run on the checked CPUs.",
+                TextWrapping = TextWrapping.Wrap
+            });
+            var boxes = new List<CheckBox>();
+            var grid = new Grid { ColumnSpacing = 8, RowSpacing = 4 };
+            for (var i = 0; i < cores; i++)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            }
+
+            for (var row_ = 0; row_ * 8 < cores; row_++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                for (var col = 0; col < 8 && row_ * 8 + col < cores; col++)
+                {
+                    var cpu = row_ * 8 + col;
+                    var cb = new CheckBox
+                    {
+                        Content = $"CPU {cpu}",
+                        IsChecked = (current.Value & (1L << cpu)) != 0
+                    };
+                    Grid.SetRow(cb, row_);
+                    Grid.SetColumn(cb, col);
+                    grid.Children.Add(cb);
+                    boxes.Add(cb);
+                }
+            }
+
+            panel.Children.Add(grid);
+            var warn = new TextBlock
+            {
+                Text = "At least one CPU must stay checked.",
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Opacity = 0.7
+            };
+            panel.Children.Add(warn);
+
+            var confirm = new ContentDialog
+            {
+                Title = "CPU affinity",
+                Content = panel,
+                PrimaryButtonText = "Apply",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            long mask = 0;
+            foreach (var (cb, cpu) in boxes.Select((b, i) => (b, i)))
+            {
+                if (cb.IsChecked == true)
+                {
+                    mask |= 1L << cpu;
+                }
+            }
+
+            if (mask == 0)
+            {
+                CountText.Text = "No CPU selected — affinity unchanged.";
+                return;
+            }
+
+            var ok = await Task.Run(() => ProcessEngine.SetAffinityMask(row.Pid, mask));
+            CountText.Text = ok
+                ? $"Affinity of '{row.Name}' updated."
+                : $"Could not set affinity for '{row.Name}' — see logs.";
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"Affinity_Click: {ex}");
+            CountText.Text = "Affinity change failed — see logs.";
+        }
+    }
 
     private async void EndTask_Click(object sender, RoutedEventArgs e)
     {

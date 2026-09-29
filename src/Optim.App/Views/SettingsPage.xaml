@@ -23,6 +23,17 @@
                 </RadioButtons>
             </controls:SettingsCard>
 
+            <controls:SettingsCard x:Uid="Settings_Language"
+                                   Header="Language"
+                                   Description="Display language for Optim. Some parts apply immediately; the rest after a relaunch."
+                                   ContentAlignment="Vertical"
+                                   IsClickEnabled="False">
+                <ComboBox x:Name="LanguageBox" MinWidth="220" SelectionChanged="Language_SelectionChanged">
+                    <ComboBoxItem Content="English (US)" Tag=""/>
+                    <ComboBoxItem Content="Deutsch (Deutschland)" Tag="de-DE"/>
+                </ComboBox>
+            </controls:SettingsCard>
+
             <controls:SettingsCard x:Uid="Settings_Safety"
                                    Header="Safety"
                                    Description="Revert every registry change Optim has journaled, newest first. A restore point is belt and braces for everything else."

@@ -109,6 +109,110 @@ public static class ProcessEngine
         return !string.IsNullOrEmpty(name) && Critical.Contains(name);
     }
 
+    public sealed record PriorityChoice(int Value, string Label);
+
+    /// <summary>Standard priority classes mapped to their Win32 values.</summary>
+    public static IReadOnlyList<PriorityChoice> Priorities { get; } = new[]
+    {
+        new PriorityChoice(0x00000040, "Idle"),
+        new PriorityChoice(0x00004000, "Below normal"),
+        new PriorityChoice(0x00000020, "Normal"),
+        new PriorityChoice(0x00008000, "Above normal"),
+        new PriorityChoice(0x00000080, "High"),
+        new PriorityChoice(0x00000100, "Realtime")
+    };
+
+    /// <summary>Reads the priority class label for display, or null when unreadable.</summary>
+    public static string? GetPriorityLabel(int processId)
+    {
+        try
+        {
+            using var p = Process.GetProcessById(processId);
+            var match = Priorities.FirstOrDefault(pr => pr.Value == (int)p.PriorityClass);
+            return match?.Label;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Sets the process priority. Critical system processes and Realtime are
+    /// refused: starving system threads or audio paths is not recoverable
+    /// after a misclick.
+    /// </summary>
+    public static bool SetPriority(int processId, int priorityValue)
+    {
+        try
+        {
+            using var p = Process.GetProcessById(processId);
+            if (IsCritical(p.Id, p.ProcessName))
+            {
+                Optim.Core.Logging.FileLogger.Warn($"SetPriority refused for critical process {p.ProcessName} ({p.Id})");
+                return false;
+            }
+
+            if (priorityValue == 0x00000100)
+            {
+                Optim.Core.Logging.FileLogger.Warn($"SetPriority refused realtime for {p.ProcessName} ({p.Id})");
+                return false;
+            }
+
+            p.PriorityClass = (ProcessPriorityClass)priorityValue;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"SetPriority {processId}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>Returns the process affinity mask, or null when unreadable.</summary>
+    public static long? GetAffinityMask(int processId)
+    {
+        try
+        {
+            using var p = Process.GetProcessById(processId);
+            return p.ProcessorAffinity.ToInt64();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Restricts the process to the given CPU mask. A mask of 0 would deadlock
+    /// the process, so it is refused before any write.
+    /// </summary>
+    public static bool SetAffinityMask(int processId, long mask)
+    {
+        if (mask <= 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var p = Process.GetProcessById(processId);
+            if (IsCritical(p.Id, p.ProcessName))
+            {
+                Optim.Core.Logging.FileLogger.Warn($"SetAffinity refused for critical process {p.ProcessName} ({p.Id})");
+                return false;
+            }
+
+            p.ProcessorAffinity = new IntPtr(mask);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"SetAffinity {processId}: {ex.Message}");
+            return false;
+        }
+    }
+
     /// <summary>Kills a single process. Critical system processes are refused.</summary>
     public static bool EndTask(int processId)
     {

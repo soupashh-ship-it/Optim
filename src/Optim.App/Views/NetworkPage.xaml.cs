@@ -164,6 +164,109 @@ public sealed partial class NetworkPage : Page
         }
     }
 
+    private async void ApplyCustomDns_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdapterBox.SelectedItem is not string adapter)
+        {
+            Show("Pick an adapter first.", InfoBarSeverity.Warning);
+            return;
+        }
+
+        if (XamlRoot is null)
+        {
+            return;
+        }
+
+        var (primary, secondary, error) = NetworkEngine.ParseCustomServers(
+            CustomPrimaryBox.Text, CustomSecondaryBox.Text);
+        if (error is not null)
+        {
+            Show(error, InfoBarSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            var confirm = new ContentDialog
+            {
+                Title = "Apply custom DNS servers",
+                Content = $"Point '{adapter}' at {primary}" + (secondary is null ? "" : $" and {secondary}") + "?",
+                PrimaryButtonText = "Apply",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var result = await _engine.ApplyCustomDnsAsync(adapter, primary!, secondary);
+            Show(result.V4 ? $"DNS for '{adapter}' set. {result.Detail}" : $"Failed to apply custom DNS. {result.Detail}",
+                result.V4 ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+            RefreshAdapters(force: true);
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"ApplyCustomDns: {ex.Message}");
+            Show($"Failed to apply custom DNS: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async void ToggleAdapter_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdapterBox.SelectedItem is not string adapter)
+        {
+            Show("Pick an adapter first.", InfoBarSeverity.Warning);
+            return;
+        }
+
+        if (XamlRoot is null)
+        {
+            return;
+        }
+
+        var disable = ToggleAdapterBtn.Content as string == "Disable adapter";
+        var verb = disable ? "disable" : "re-enable";
+        try
+        {
+            var confirm = new ContentDialog
+            {
+                Title = $"{char.ToUpperInvariant(verb[0])}{verb[1..]} adapter",
+                Content = disable
+                    ? $"Disable '{adapter}' now? You will lose connectivity through it until it is re-enabled (from Optim or Device Manager)."
+                    : $"Re-enable '{adapter}' now?",
+                PrimaryButtonText = char.ToUpperInvariant(verb[0]) + verb[1..],
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var ok = await NetworkEngine.SetAdapterEnabledAsync(adapter, !disable);
+            Show(ok
+                ? $"Adapter {(disable ? "disabled" : "enabled")}: '{adapter}'."
+                : $"Could not {verb} '{adapter}' — run elevated and check logs.",
+                ok ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+
+            if (disable)
+            {
+                // A disabled adapter drops off the enumeration; reflect that
+                // immediately instead of leaving a stale selection.
+                ToggleAdapterBtn.Content = "Enable adapter";
+            }
+            RefreshAdapters(force: true);
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"ToggleAdapter: {ex.Message}");
+            Show($"Failed to {verb} the adapter: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
     private void Show(string message, InfoBarSeverity severity)
     {
         ResultInfo.Message = message;

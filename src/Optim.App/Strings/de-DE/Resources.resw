@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!--
+    Deutsche Ressourcen (de-DE). Absichtlich eine Teilübersetzung: Der resw-
+    Mechanismus von Optim fällt pro Schlüssel auf die en-US-Werte zurück, daher
+    ist das Weglassen eines Schlüssels immer sicher. Die Tweak_*-Zeilen folgen
+    in einem späteren Beitrag; bis dahin laufen sie auf Englisch.
+  -->
+  <!-- Navigation -->
+  <data name="Nav_Home.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="Nav_Optimize.Content" xml:space="preserve">
+    <value>Optimieren</value>
+  </data>
+  <data name="Nav_Privacy.Content" xml:space="preserve">
+    <value>Datenschutz</value>
+  </data>
+  <data name="Nav_Features.Content" xml:space="preserve">
+    <value>Features</value>
+  </data>
+  <data name="Nav_Debloat.Content" xml:space="preserve">
+    <value>Debloat</value>
+  </data>
+  <data name="Nav_Services.Content" xml:space="preserve">
+    <value>Dienste</value>
+  </data>
+  <data name="Nav_Processes.Content" xml:space="preserve">
+    <value>Prozesse</value>
+  </data>
+  <data name="Nav_Startup.Content" xml:space="preserve">
+    <value>Autostart</value>
+  </data>
+  <data name="Nav_Packages.Content" xml:space="preserve">
+    <value>Pakete</value>
+  </data>
+  <data name="Nav_Network.Content" xml:space="preserve">
+    <value>Netzwerk</value>
+  </data>
+  <data name="Nav_Security.Content" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="Nav_Policies.Content" xml:space="preserve">
+    <value>Gruppenrichtlinien</value>
+  </data>
+  <data name="Nav_Repair.Content" xml:space="preserve">
+    <value>Reparatur</value>
+  </data>
+  <data name="Nav_Device.Content" xml:space="preserve">
+    <value>Gerät</value>
+  </data>
+  <data name="Nav_Settings.Content" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Nav_About.Content" xml:space="preserve">
+    <value>Über</value>
+  </data>
+  <!-- Seitenüberschriften -->
+  <data name="Page_Home" xml:space="preserve">
+    <value>Startseite</value>
+  </data>
+  <data name="Page_Optimize" xml:space="preserve">
+    <value>Systemoptimierung</value>
+  </data>
+  <data name="Page_Privacy" xml:space="preserve">
+    <value>Datenschutz</value>
+  </data>
+  <data name="Page_Features" xml:space="preserve">
+    <value>Windows-Features</value>
+  </data>
+  <data name="Page_Debloat" xml:space="preserve">
+    <value>Debloat</value>
+  </data>
+  <data name="Page_Services" xml:space="preserve">
+    <value>Dienste</value>
+  </data>
+  <data name="Page_Processes" xml:space="preserve">
+    <value>Prozesse</value>
+  </data>
+  <data name="Page_Startup" xml:space="preserve">
+    <value>Autostart-Apps</value>
+  </data>
+  <data name="Page_Packages" xml:space="preserve">
+    <value>Pakete</value>
+  </data>
+  <data name="Page_Network" xml:space="preserve">
+    <value>Netzwerk</value>
+  </data>
+  <data name="Page_Security" xml:space="preserve">
+    <value>Sicherheit</value>
+  </data>
+  <data name="Page_Policies" xml:space="preserve">
+    <value>Gruppenrichtlinien</value>
+  </data>
+  <data name="Page_Repair" xml:space="preserve">
+    <value>Reparatur</value>
+  </data>
+  <data name="Page_Device" xml:space="preserve">
+    <value>Gerät</value>
+  </data>
+  <data name="Page_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Page_About" xml:space="preserve">
+    <value>Über</value>
+  </data>
+  <!-- Einstellungen -->
+  <data name="Settings_Title.Text" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Settings_Appearance.Header" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="Settings_Language.Header" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="Settings_Language.Description" xml:space="preserve">
+    <value>Sprache der Oberfläche. Einige Teile werden sofort übernommen, der Rest nach einem Neustart.</value>
+  </data>
+  <data name="Settings_Language_Restart.Message" xml:space="preserve">
+    <value>Sprache gespeichert. Einige Teile sind sofort aktiv — starte Optim neu, um alles umzustellen.</value>
+  </data>
+  <data name="Settings_Safety.Header" xml:space="preserve">
+    <value>Wiederherstellung</value>
+  </data>
+  <data name="Settings_Safety.Description" xml:space="preserve">
+    <value>Alle von Optim protokollierten Registrierungsänderungen rückgängig machen, neueste zuerst. Ein Wiederherstellungspunkt ist die zusätzliche Absicherung für alles andere.</value>
+  </data>
+  <data name="Settings_Backup.Header" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="Settings_Backup.Description" xml:space="preserve">
+    <value>Die aktuell angewendeten Tweaks exportieren, um sie später auf diesem PC wiederherzustellen.</value>
+  </data>
+  <data name="Settings_Logs.Header" xml:space="preserve">
+    <value>Protokolle</value>
+  </data>
+  <data name="Settings_Theme_Light.Content" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="Settings_Theme_Dark.Content" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="Settings_Theme_System.Content" xml:space="preserve">
+    <value>System verwenden</value>
+  </data>
+  <!-- Shell -->
+  <data name="App_Name" xml:space="preserve">
+    <value>Optim</value>
+  </data>
+  <data name="Shell_Search.PlaceholderText" xml:space="preserve">
+    <value>Tweaks, Seiten, Apps suchen…</value>
+  </data>
+  <data name="Shell_Search.AutomationProperties.Name" xml:space="preserve">
+    <value>Suche</value>
+  </data>
+</root>

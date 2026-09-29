@@ -102,6 +102,98 @@ public sealed class DebloatEngine
         return result.OrderBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
+    /// <summary>
+    /// True when a package for this family exists in the machine-wide provisioned
+    /// list, i.e. it would come back for every new user account. Reinstalling
+    /// from the provisioned store is the clean-room escape hatch for removed apps.
+    /// </summary>
+    public static IReadOnlyList<AppPackage> ListProvisioned()
+    {
+        var result = new List<AppPackage>();
+        try
+        {
+            var pm = new PackageManager();
+            foreach (var pkg in pm.FindProvisionedPackages())
+            {
+                try
+                {
+                    if (pkg.IsFramework || pkg.IsResourcePackage || pkg.IsBundle)
+                    {
+                        continue;
+                    }
+
+                    var family = pkg.Id.FamilyName;
+                    result.Add(new AppPackage(
+                        string.IsNullOrWhiteSpace(pkg.DisplayName) ? pkg.Id.Name : pkg.DisplayName,
+                        family,
+                        pkg.PublisherDisplayName ?? "",
+                        IsProtected(family)));
+                }
+                catch
+                {
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Error($"Provisioned list: {ex.Message}");
+        }
+
+        return result.OrderBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    /// <summary>
+    /// Re-registers provisioned packages for the current user with progress
+    /// callbacks. Registration (not deployment) is used on purpose: it restores
+    /// the per-user state without re-downloading, and is what Windows itself
+    /// uses to repair built-in apps. Packages already present report "already present".
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, string>> ReinstallAsync(
+        IEnumerable<string> familyNames, Action<string>? progress = null)
+    {
+        var results = new Dictionary<string, string>();
+        var pm = new PackageManager();
+        var installedFamilies = pm.FindPackages()
+            .Select(p => p.Id.FamilyName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var family in familyNames)
+        {
+            try
+            {
+                var pkg = pm.FindProvisionedPackages()
+                    .FirstOrDefault(p => p.Id.FamilyName.Equals(family, StringComparison.OrdinalIgnoreCase));
+                if (pkg is null)
+                {
+                    results[family] = "Not in the provisioned store";
+                    continue;
+                }
+
+                if (installedFamilies.Contains(family))
+                {
+                    results[family] = "Already present";
+                    continue;
+                }
+
+                progress?.Invoke(pkg.DisplayName ?? family);
+                var op = pm.RegisterPackageByFullNameAsync(
+                    pkg.Id.FullName,
+                    Enumerable.Empty<string>(),
+                    DeploymentOptions.None).AsTask();
+                await op;
+                results[family] = "Registered";
+                Optim.Core.Logging.FileLogger.Info($"Reinstalled provisioned package {family}");
+            }
+            catch (Exception ex)
+            {
+                results[family] = $"Failed: {ex.Message}";
+                Optim.Core.Logging.FileLogger.Error($"Reinstall {family}: {ex.Message}");
+            }
+        }
+
+        return results;
+    }
+
     /// <summary>Removes the given packages for the current user. Returns per-package status.</summary>
     public async Task<IReadOnlyDictionary<string, string>> UninstallAsync(IEnumerable<string> familyNames)
     {

@@ -10,6 +10,43 @@ public sealed record DnsProfile(string Name, string Primary, string Secondary, s
 /// <summary>Adapter info plus DNS management via netsh (IPv4 and IPv6).</summary>
 public sealed class NetworkEngine
 {
+    /// <summary>
+    /// Parses user-typed DNS servers. Accepts IPv4 or IPv6; "none" skips that
+    /// slot. Returns null with a reason when the input is not a valid address,
+    /// so the UI can warn instead of pushing a broken netsh command.
+    /// </summary>
+    public static (string? Primary, string? Secondary, string? Error) ParseCustomServers(string? primaryText, string? secondaryText)
+    {
+        string? Parse(string? text, string slot)
+        {
+            var trimmed = text?.Trim();
+            if (string.IsNullOrEmpty(trimmed) || trimmed.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return System.Net.IPAddress.TryParse(trimmed, out _)
+                ? trimmed
+                : throw new FormatException($"'{trimmed}' is not a valid {slot} DNS address.");
+        }
+
+        try
+        {
+            var primary = Parse(primaryText, "primary");
+            if (primary is null)
+            {
+                return (null, null, "Enter a primary DNS address (or pick a preset profile).");
+            }
+
+            var secondary = Parse(secondaryText, "secondary");
+            return (primary, secondary, null);
+        }
+        catch (FormatException ex)
+        {
+            return (null, null, ex.Message);
+        }
+    }
+
     public static IReadOnlyList<DnsProfile> KnownProfiles { get; } = new[]
     {
         new DnsProfile("Cloudflare", "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"),
@@ -77,6 +114,32 @@ public sealed class NetworkEngine
         return (v4, v6, detail);
     }
 
+    /// <summary>
+    /// Applies user-typed servers. IPv6 servers are applied only when both
+    /// entered addresses are IPv6 (a mixed v4/v6 pair on one stack is invalid);
+    /// otherwise the v6 stack is left untouched.
+    /// </summary>
+    public async Task<(bool V4, bool V6, string Detail)> ApplyCustomDnsAsync(
+        string adapterName, string primary, string? secondary)
+    {
+        secondary ??= primary;
+
+        var primaryIsV6 = primary.Contains(':');
+        var secondaryIsV6 = secondary.Contains(':');
+        if (primaryIsV6 != secondaryIsV6)
+        {
+            return (false, false, "Primary and secondary must both be IPv4 or both be IPv6.");
+        }
+
+        if (primaryIsV6)
+        {
+            return await ApplyDnsAsync(adapterName, new DnsProfile("Custom", primary, secondary, primary, secondary));
+        }
+
+        // IPv4 input: reuse the profile path so verification stays identical.
+        return await ApplyDnsAsync(adapterName, new DnsProfile("Custom", primary, secondary, string.Empty, string.Empty));
+    }
+
     public async Task<bool> ResetDnsAsync(string adapterName)
     {
         if (adapterName.Contains('"'))
@@ -121,6 +184,18 @@ public sealed class NetworkEngine
             Optim.Core.Logging.FileLogger.Error($"ipconfig /flushdns: {ex.Message}");
             return -1;
         }
+    }
+
+    /// <summary>Enables or disables a network adapter via netsh. Returns false when netsh fails (typically: not elevated).</summary>
+    public static async Task<bool> SetAdapterEnabledAsync(string adapterName, bool enabled)
+    {
+        if (adapterName.Contains('"'))
+        {
+            throw new ArgumentException("Adapter name contains an invalid character.", nameof(adapterName));
+        }
+
+        var verb = enabled ? "enable" : "disable";
+        return await RunAsync("netsh", $@"interface set interface name=""{adapterName}"" admin={verb}");
     }
 
     /// <summary>Re-reads the adapter and reports which expected servers are live.</summary>

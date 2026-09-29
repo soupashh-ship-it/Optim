@@ -41,8 +41,60 @@
                 </Grid>
             </Border>
 
+            <TextBlock Text="Controls" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,4,0,4"/>
+            <TextBlock Text="Local policy switches. Enabling always restores the Windows default; tamper protection may refuse or revert a disable — that is by design."
+                       Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" Margin="0,0,0,8" TextWrapping="Wrap" MaxWidth="800"/>
+
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                <StackPanel Spacing="0">
+                    <Grid Padding="0,8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="Microsoft Defender Antivirus" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <TextBlock Text="Removing the disabling policy restores Windows' default (on)." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" x:Name="DefenderToggle" OnContent="" OffContent="" Toggled="DefenderToggle_Toggled"/>
+                    </Grid>
+                    <Grid Padding="0,8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="Real-time protection" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <TextBlock Text="Continuous scanning of file and process activity." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" x:Name="RealtimeToggle" OnContent="" OffContent="" Toggled="RealtimeToggle_Toggled"/>
+                    </Grid>
+                    <Grid Padding="0,8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="SmartScreen" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <TextBlock Text="Reputation checks for apps and downloads." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" x:Name="SmartScreenToggle" OnContent="" OffContent="" Toggled="SmartScreenToggle_Toggled"/>
+                    </Grid>
+                    <Grid Padding="0,8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="1">
+                            <TextBlock Text="User Account Control (UAC)" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <TextBlock Text="Elevation prompts before system-wide changes. Applies after a restart." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" x:Name="UacToggle" OnContent="" OffContent="" Toggled="UacToggle_Toggled"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Details" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,4,0,4"/>
-            <TextBlock Text="Read-only view. This page never changes security settings." Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.7" Margin="0,0,0,8"/>
             <TextBlock x:Name="ActionStatus" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.8" Margin="0,0,0,8"/>
 
             <ListView x:Name="SecurityList" SelectionMode="None">

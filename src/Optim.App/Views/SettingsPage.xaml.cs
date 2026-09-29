@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Optim.App.Localization;
 using Optim.Core.Tweaks;
 
 namespace Optim.App.Views;
@@ -16,6 +17,7 @@ public sealed partial class SettingsPage : Page
         LogPathText.Text = Optim.Core.Logging.FileLogger.LogDirectory;
         RefreshJournalCount();
         RestoreSavedTheme();
+        RestoreSavedLanguage();
     }
 
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -48,6 +50,59 @@ public sealed partial class SettingsPage : Page
     private void RefreshJournalCount()
     {
         JournalCount.Text = TuneKit.Count(_journal.Snapshot().Count, "journaled change", "journaled changes");
+    }
+
+    /// <summary>Selects the saved language without firing the change handler.</summary>
+    private void RestoreSavedLanguage()
+    {
+        var saved = App.AppSettings.GetString("Language") ?? "";
+        foreach (ComboBoxItem item in LanguageBox.Items)
+        {
+            if ((string?)item.Tag == saved)
+            {
+                LanguageBox.SelectionChanged -= Language_SelectionChanged;
+                LanguageBox.SelectedItem = item;
+                LanguageBox.SelectionChanged += Language_SelectionChanged;
+                return;
+            }
+        }
+    }
+
+    private async void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageBox.SelectedItem is not ComboBoxItem { Tag: string tag })
+        {
+            return;
+        }
+
+        if (tag == (App.AppSettings.GetString("Language") ?? ""))
+        {
+            return; // render pass, not a user change
+        }
+
+        App.AppSettings.SetString("Language", tag);
+        Optim.App.Localization.Loc.ResetForLanguageChange();
+
+        if (XamlRoot is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await new ContentDialog
+            {
+                Title = "Language saved",
+                Content = Loc.Get("Settings_Language_Restart.Message",
+                    "Language saved. Some parts apply now — restart Optim to switch everything."),
+                CloseButtonText = "OK",
+                XamlRoot = XamlRoot
+            }.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Warn($"Language dialog: {ex.Message}");
+        }
     }
 
     private async void RevertAll_Click(object sender, RoutedEventArgs e)

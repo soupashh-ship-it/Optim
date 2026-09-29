@@ -1,16 +1,27 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Windows.Graphics;
 
 namespace Optim.App;
 
 public sealed partial class MainWindow : Window
 {
+    /// <summary>Guard so the state is saved only after the saved bounds were
+    /// applied, never overwriting them with the default 1100×720 first show.</summary>
+    private bool _boundsRestored;
+
     public MainWindow()
     {
         InitializeComponent();
         Title = "Optim";
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
         AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"));
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1100, 720));
+        AppWindow.Resize(new SizeInt32(1100, 720));
+        RestoreWindowBounds();
+
+        // Persist size/position: every move/resize ends in one final Changed
+        // event, and a 300ms debounce keeps the registry write out of the drag.
+        AppWindow.Changed += (_, _) => ScheduleSaveBounds();
 
         // Apply the saved theme to the whole window (Settings only writes HKCU).
         try
@@ -31,6 +42,85 @@ public sealed partial class MainWindow : Window
         catch (Exception ex)
         {
             Optim.Core.Logging.FileLogger.Warn($"MainWindow theme: {ex.Message}");
+        }
+    }
+
+    /// <summary>HKCU key holding the last window placement.</summary>
+    private const string BoundsPath = "Software\\Optim\\Window";
+
+    /// <summary>Applies the saved size/position if a previous session stored one.</summary>
+    private void RestoreWindowBounds()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(BoundsPath);
+            if (key?.GetValue("W") is not int w || key.GetValue("H") is not int h
+                || key.GetValue("X") is not int x || key.GetValue("Y") is not int y)
+            {
+                _boundsRestored = true; // nothing saved: first run, save freely
+                return;
+            }
+
+            // Bounds sanity: refuse nonsense saved by a since-changed monitor
+            // setup (clamping to at least the default size).
+            w = Math.Clamp(w, 640, 10000);
+            h = Math.Clamp(h, 480, 10000);
+            AppWindow.Resize(new SizeInt32(w, h));
+            AppWindow.Move(new PointInt32(x, y));
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Warn($"Restore bounds: {ex.Message}");
+        }
+        finally
+        {
+            _boundsRestored = true;
+        }
+    }
+
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _saveTimer;
+
+    private void ScheduleSaveBounds()
+    {
+        if (!_boundsRestored)
+        {
+            return;
+        }
+
+        try
+        {
+            _saveTimer ??= DispatcherQueue.CreateTimer();
+            _saveTimer.Stop();
+            _saveTimer.Interval = TimeSpan.FromMilliseconds(300);
+            _saveTimer.Tick -= SaveTimer_Tick;
+            _saveTimer.Tick += SaveTimer_Tick;
+            _saveTimer.Start();
+        }
+        catch
+        {
+            // Persistence must never break the window.
+        }
+    }
+
+    private void SaveTimer_Tick(object? sender, object e)
+    {
+        try
+        {
+            (_saveTimer ?? throw new InvalidOperationException()).Stop();
+            // Position/Size are plain properties (no P/Invoke needed). A
+            // maximized window saves its maximized rect; restoring that
+            // un-maximized is imperfect but harmless.
+            var pos = AppWindow.Position;
+            var size = AppWindow.Size;
+            using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(BoundsPath, writable: true);
+            key.SetValue("X", pos.X, Microsoft.Win32.RegistryValueKind.DWord);
+            key.SetValue("Y", pos.Y, Microsoft.Win32.RegistryValueKind.DWord);
+            key.SetValue("W", size.Width, Microsoft.Win32.RegistryValueKind.DWord);
+            key.SetValue("H", size.Height, Microsoft.Win32.RegistryValueKind.DWord);
+        }
+        catch (Exception ex)
+        {
+            Optim.Core.Logging.FileLogger.Warn($"Save bounds: {ex.Message}");
         }
     }
 
