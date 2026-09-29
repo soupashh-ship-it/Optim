@@ -25,7 +25,11 @@ if (Test-Path -LiteralPath $publishDir) { Remove-Item -LiteralPath $publishDir -
 # Publish the app project directly (not the solution): solution-level -o
 # mixes test binaries into the artifact, and Platform=x64 is only valid
 # at project level (the .slnx config does not define it).
-& dotnet publish "$root\src\Optim.App\Optim.App.csproj" -c $Configuration -p:Platform=x64 -o $publishDir
+# ReadyToRun precompiles the managed code, so opening a page the first time does
+# not pay for JIT compiling it: that first-use compilation is what makes the
+# first visit to each page feel heavier than every visit after it. It costs
+# publish time and some artifact size, and changes no behaviour.
+& dotnet publish "$root\src\Optim.App\Optim.App.csproj" -c $Configuration -p:Platform=x64 -p:PublishReadyToRun=true -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
 
 $zip = Join-Path $OutDir "Optim-portable-$version.zip"
