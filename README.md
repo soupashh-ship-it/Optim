@@ -8,16 +8,6 @@ tuning, privacy hardening, and deep system insight into one clean Fluent app.
 
 > ✨ 100% original code — clean-room implementation, MIT licensed.
 
-| Home | Optimize |
-|---|---|
-| ![Home dashboard with live usage graphs](docs/screenshots/home.png) | ![System Optimizations tuning page](docs/screenshots/optimize.png) |
-| **Privacy** | **Features** |
-| ![Privacy hardening page](docs/screenshots/privacy.png) | ![Windows Features page](docs/screenshots/features.png) |
-| **Debloat** | **Services** |
-| ![Debloat page with installed apps](docs/screenshots/debloat.png) | ![Services management page](docs/screenshots/services.png) |
-| **Network** | |
-| ![Network adapters and DNS profiles](docs/screenshots/network.png) | |
-
 ## Features
 
 | Module      | What it does                                                              |
@@ -25,19 +15,19 @@ tuning, privacy hardening, and deep system insight into one clean Fluent app.
 | 🏠 Home      | Live CPU / memory / disk usage with quick actions (temp clean, recycle bin, DNS flush, restore point) |
 | ⚡ Optimize   | Performance toggles (basic + advanced tiers) + power-plan switcher        |
 | 🛡️ Privacy   | Telemetry, advertising ID, activity history, Recall, Cortana, location    |
-| 🧩 Features  | Widgets, Copilot, hibernation, classic context menu, taskbar search       |
-| 🧹 Debloat   | Installed appx list with multi-select uninstall + protected-components    |
+| 🧩 Features  | Real DISM optional-feature toggles + registry feature tweaks (widgets, Copilot, hibernation, classic context menu) |
+| 🧹 Debloat   | Installed appx list with multi-select uninstall, protected components, and a **reinstall** escape hatch |
 | ⚙️ Services  | Vetted services switchable (Automatic/Manual/Disabled) with live status; everything else is read-only, all changes journaled |
-| 📋 Processes | Live process list with RAM usage and guarded end-task                     |
+| 📋 Processes | Live process list with priority classes, per-CPU affinity, and guarded end-task |
 | 🚀 Startup   | User + machine Run keys and startup folder with enable/disable/delete     |
 | 📦 Packages  | winget-driven upgrade discovery and one-click upgrades (with confirm)     |
-| 🌐 Network   | Adapter overview, one-click DNS profiles (Cloudflare, Quad9, …), flush    |
-| 🔒 Security  | Read-only posture view: Defender, SmartScreen, UAC, all firewall profiles |
+| 🌐 Network   | Adapter overview with enable/disable, custom DNS (v4/v6), one-click profiles, flush |
+| 🔒 Security  | Posture dashboard plus Defender / real-time / SmartScreen / UAC policy controls — restoring Windows defaults, tamper-aware |
 | 📜 Policies  | Scans every registry policy override with plain-language labels, journaled one-click removal, exportable report |
 | 🔧 Repair    | SFC, DISM (check/scan/restore), chkdsk — with live output and cancel      |
 | 💻 Device    | Full hardware/OS inventory + driver export via pnputil                    |
 | ℹ️ About     | Version, safety model, restore-point helper, diagnostics                  |
-| ⚙️ Settings  | Theme (whole window incl. title bar), log viewer, restore-point helper and **Revert all changes** |
+| ⚙️ Settings  | Theme (whole window incl. title bar), language (English/German), log viewer, restore-point helper and **Revert all changes** |
 
 ## Safety model
 
@@ -64,8 +54,7 @@ dotnet test tests/Optim.Core.Tests
 
 The app requests administrator elevation at launch (registry + service
 operations require it). For docs tooling, `Optim.App.exe --page <tag>` opens a
-specific page directly (e.g. `--page optimize`); `scripts/capture-page.ps1`
-uses that to regenerate the screenshots above.
+specific page directly (e.g. `--page optimize`).
 
 ## Architecture
 

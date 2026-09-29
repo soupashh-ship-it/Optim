@@ -1,6 +1,7 @@
 # Launches Optim on a specific page (--page <tag>) and captures the window to
-# a PNG for the README screenshots. UAC prompt is expected: the app requires
-# elevation. Captures only the app window, not the whole desktop.
+# a PNG (local tooling; output lands in gitignored docs/screenshots/). UAC
+# prompt is expected: the app requires elevation. Captures only the app
+# window, not the whole desktop.
 param(
     [Parameter(Mandatory)][string]$Page,
     [Parameter(Mandatory)][string]$Out,
