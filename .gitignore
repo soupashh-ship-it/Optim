@@ -41,6 +41,7 @@ coverage/
 *.nuget.targets
 project.lock.json
 
+# Tool state / local artifacts that must never ship
 docs/rytunex-reference/
-
 docs/screenshots/
+.freebuff/

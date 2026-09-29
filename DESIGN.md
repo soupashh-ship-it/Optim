@@ -34,7 +34,7 @@ no code is taken from any existing optimizer. All rights belong to the project o
 ## Architecture
 
 ```
-Optim.sln
+Optim.slnx
 ├── src/Optim.App            → WinUI 3 executable (Views, DI host, shell)
 ├── src/Optim.Core           → Engines: registry, packages, services, network, info
 │   └── TweakCatalog         → Declarative definitions of every tweak
@@ -83,18 +83,18 @@ applying batches; failures are reported per-tweak, never partially silent.
 | Home       | Live CPU/RAM/disk usage graph, counts of apps/services, quick actions    |
 | Optimize   | Catalog-driven performance toggles (visual effects, menu delay, etc.)    |
 | Privacy    | Telemetry, advertising ID, activity history, tracking toggles            |
-| Features   | Windows capabilities/features toggles (DISM-backed)                      |
+| Features   | Catalog tweaks plus real DISM optional-feature toggles                    |
 | Debloat    | Installed Appx list, multi-select uninstall, provisioned-package removal |
 | Services   | SCM list with start type/status, safe set + expert set, backups          |
-| Processes  | Live process list, CPU/RAM columns, end-task with confirmation           |
+| Processes  | Live process list, CPU/RAM columns, priority/affinity, guarded end-task  |
 | Startup    | Startup folder + Run keys + approved startup entries, enable/disable     |
 | Device     | OS/CPU/GPU/RAM/disk inventory, driver export button                      |
-| Network    | Adapter list, DNS profile apply/reset, flush DNS cache                   |
-| Security   | Defender, SmartScreen, UAC, firewall posture readout                     |
+| Network    | Adapter list with enable/disable, custom DNS, one-click profiles, flush  |
+| Security   | Posture dashboard plus Defender / SmartScreen / UAC policy controls      |
 | Policies   | Scan registry for policy overrides (Groups policy keys), export report   |
 | Repair     | SFC, DISM restore health, system file assoc refresh (run + live output)  |
 | Packages   | winget-based upgrade list, upgrade selected                              |
-| Settings   | Theme, language, logs viewer, restore-point helper, **Revert all**       |
+| Settings   | Theme, language (EN/DE), logs viewer, restore-point helper, **Revert all** |
 
 Each module owns a small engine class in `Optim.Core` (e.g. `ServiceEngine`,
 `PackageEngine`, `NetworkEngine`) exposing async operations returning DTOs.
