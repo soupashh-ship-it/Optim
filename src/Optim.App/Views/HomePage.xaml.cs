@@ -91,11 +91,19 @@ public sealed partial class HomePage : Page
     {
         try
         {
-            CpuText.Text = s.CpuPercent.ToString("F0", CultureInfo.InvariantCulture) + "%";
-            RamText.Text = s.RamPercent.ToString("F0", CultureInfo.InvariantCulture) + "%";
-            DiskText.Text = s.DiskAvailable
-                ? s.DiskPercent.ToString("F0", CultureInfo.InvariantCulture) + "%"
-                : "N/A";
+            // Rolled rather than assigned: the graphs below glide to the new
+            // sample, and a number that snapped while its curve eased read as a
+            // stutter. Same duration, so the figure and its curve move together.
+            NumberRoll.To(CpuText, s.CpuPercent, Percent);
+            NumberRoll.To(RamText, s.RamPercent, Percent);
+            if (s.DiskAvailable)
+            {
+                NumberRoll.To(DiskText, s.DiskPercent, Percent);
+            }
+            else
+            {
+                DiskText.Text = "N/A";
+            }
 
             CpuGraph.AddValue(s.CpuPercent);
             RamGraph.AddValue(s.RamPercent);
@@ -115,6 +123,12 @@ public sealed partial class HomePage : Page
         }
     }
 
+    private static string Percent(double value) =>
+        value.ToString("F0", CultureInfo.InvariantCulture) + "%";
+
+    private static string Count(double value) =>
+        ((int)Math.Round(value, MidpointRounding.AwayFromZero)).ToString(CultureInfo.InvariantCulture);
+
     private async Task LoadCountsAsync()
     {
         try
@@ -128,14 +142,16 @@ public sealed partial class HomePage : Page
             // PackageManager is UI-affinitized (per-thread WinRT objects): the
             // enumeration itself must stay on the UI thread, so it runs last —
             // after services/processes are already counted and painted.
+            // Each figure rolls in as it arrives, so the cards fill in with a
+            // little motion instead of three numbers appearing at once.
             var services = await servicesTask;
-            ServicesCountText.Text = services.ToString(CultureInfo.InvariantCulture);
+            NumberRoll.To(ServicesCountText, services, Count);
 
             var processes = await processesTask;
-            ProcessesCountText.Text = processes.Count.ToString(CultureInfo.InvariantCulture);
+            NumberRoll.To(ProcessesCountText, processes.Count, Count);
 
             var apps = App.Get<DebloatEngine>().ListInstalled().Count;
-            AppsCountText.Text = apps.ToString(CultureInfo.InvariantCulture);
+            NumberRoll.To(AppsCountText, apps, Count);
         }
         catch (Exception ex)
         {

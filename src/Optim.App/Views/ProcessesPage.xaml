@@ -30,6 +30,13 @@
         </StackPanel>
 
         <ListView x:Name="ProcessList" Grid.Row="2" SelectionMode="Single">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Realize past the viewport so a flick scroll never catches up
+                         with container creation and stalls mid-scroll. -->
+                    <ItemsStackPanel CacheLength="5"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
             <ListView.Header>
                 <Grid Padding="4" ColumnSpacing="12">
                     <Grid.ColumnDefinitions>

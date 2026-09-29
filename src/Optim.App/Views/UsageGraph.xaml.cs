@@ -84,18 +84,88 @@ public sealed partial class UsageGraph : UserControl
             return;
         }
 
+        var previous = _values.Count > 0 ? _values[^1] : double.NaN;
         _values.Add(Math.Clamp(percent, 0, 100));
         if (_values.Count > Capacity)
         {
             _values.RemoveAt(0);
         }
-        Render();
+
+        var target = _values[^1];
+        if (double.IsNaN(previous) || Math.Abs(previous - target) < 0.5)
+        {
+            StopGlide();
+            Render();
+            return;
+        }
+
+        // The newest point glides to its value instead of jumping. Sampling is
+        // every 1.5s, so a 320ms ease reads as a live curve moving rather than a
+        // chart being redrawn, and it is far shorter than the sample interval.
+        StartGlide(previous, target);
     }
 
     public void Clear()
     {
+        StopGlide();
         _values.Clear();
         Render();
+    }
+
+    /// <summary>Cadence of an in-progress glide.</summary>
+    private const int GlideFrameMilliseconds = 33;
+
+    private static readonly TimeSpan GlideDuration = TimeSpan.FromMilliseconds(320);
+
+    private bool _gliding;
+    private double _glideFrom;
+    private double _glideTo;
+    private double _glideCurrent;
+    private long _glideStarted;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _glideTimer;
+
+    private void StartGlide(double from, double to)
+    {
+        _gliding = true;
+        _glideFrom = from;
+        _glideTo = to;
+        _glideCurrent = from;
+        _glideStarted = Environment.TickCount64;
+
+        _glideTimer ??= CreateGlideTimer();
+        _glideTimer.Stop();
+        _glideTimer.Start();
+    }
+
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer CreateGlideTimer()
+    {
+        var timer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(GlideFrameMilliseconds);
+        timer.IsRepeating = true;
+        timer.Tick += (_, _) => AdvanceGlide();
+        return timer;
+    }
+
+    private void AdvanceGlide()
+    {
+        var progress = (Environment.TickCount64 - _glideStarted) / GlideDuration.TotalMilliseconds;
+        if (progress >= 1)
+        {
+            StopGlide();
+            Render();
+            return;
+        }
+
+        // Ease out: the curve reacts immediately, then settles into the value.
+        var eased = 1 - Math.Pow(1 - progress, 3);
+        _glideCurrent = _glideFrom + ((_glideTo - _glideFrom) * eased);
+        Render();
+    }
+
+    private void StopGlide()
+    {
+        _gliding = false;
+        _glideTimer?.Stop();
     }
 
     /// <summary>
@@ -107,6 +177,7 @@ public sealed partial class UsageGraph : UserControl
     {
         if (_values.Count > 0)
         {
+            StopGlide();
             _values.Clear();
             Render();
         }
@@ -157,7 +228,9 @@ public sealed partial class UsageGraph : UserControl
         var pts = new List<Point>(_values.Count);
         for (var i = 0; i < _values.Count; i++)
         {
-            pts.Add(new Point(startX + i * step, h - (_values[i] / 100.0 * (h - 4)) - 2));
+            // The last sample is the one still gliding, if a glide is running.
+            var value = _gliding && i == _values.Count - 1 ? _glideCurrent : _values[i];
+            pts.Add(new Point(startX + i * step, h - (value / 100.0 * (h - 4)) - 2));
         }
 
         var linePoints = new PointCollection();

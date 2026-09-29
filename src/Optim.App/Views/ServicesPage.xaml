@@ -25,6 +25,13 @@
         </StackPanel>
 
         <ListView x:Name="ServicesList" Grid.Row="2">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Realize past the viewport so a flick scroll never catches up
+                         with container creation and stalls mid-scroll. -->
+                    <ItemsStackPanel CacheLength="5"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <!-- Compiled bindings (x:Bind) instead of reflection-based
                      {Binding}: scrolling hundreds of rows no longer pays for a

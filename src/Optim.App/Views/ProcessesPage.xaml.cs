@@ -46,6 +46,11 @@ public sealed partial class ProcessesPage : Page
 {
     private List<ProcessRow> _rows = new();
     private readonly List<ProcessRow> _allRows = new();
+
+    /// <summary>Waits out a burst of typing before rebuilding the filtered list.</summary>
+    private readonly Optim.App.Services.Debouncer _filter = new(
+        Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread(),
+        TimeSpan.FromMilliseconds(120));
     private bool _loaded;
     private bool _loading;
     private int? _selectedPid;
@@ -56,6 +61,10 @@ public sealed partial class ProcessesPage : Page
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
         ProcessList.ItemContainerTransitions?.Clear();
+        ProcessList.AddHandler(
+            Microsoft.UI.Xaml.UIElement.PointerWheelChangedEvent,
+            new Microsoft.UI.Xaml.Input.PointerEventHandler(List_PointerWheelChanged),
+            handledEventsToo: true);
         ProcessList.SelectionChanged += (_, _) =>
         {
             _selectedPid = (ProcessList.SelectedItem as ProcessRow)?.Pid;
@@ -172,10 +181,13 @@ public sealed partial class ProcessesPage : Page
         return true;
     }
 
-    /// <summary>Search-as-you-type: Enter keeps working for muscle memory.</summary>
+    /// <summary>
+    /// Search-as-you-type, settled after typing pauses: re-filtering 300+ rows per
+    /// keystroke replaced the list the previous keystroke had just queued.
+    /// </summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        ApplyFilter();
+        _filter.Run(ApplyFilter);
     }
 
     private void AutoRefresh_Click(object sender, RoutedEventArgs e)
@@ -200,8 +212,26 @@ public sealed partial class ProcessesPage : Page
 
         _timer = DispatcherQueue.CreateTimer();
         _timer.Interval = TimeSpan.FromSeconds(5);
-        _timer.Tick += (_, _) => Load(force: true);
+        _timer.Tick += (_, _) =>
+        {
+            // Skip a tick while the wheel is turning: values updating under a
+            // scrolling list is movement the user did not ask for.
+            if (!IsScrolling)
+            {
+                Load(force: true);
+            }
+        };
         _timer.Start();
+    }
+
+    private long _scrollingUntil;
+
+    /// <summary>True while the mouse wheel is turning over the list.</summary>
+    private bool IsScrolling => Environment.TickCount64 < _scrollingUntil;
+
+    private void List_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        _scrollingUntil = Environment.TickCount64 + 250;
     }
 
     private void StopAutoRefresh()

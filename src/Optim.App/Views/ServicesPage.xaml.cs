@@ -130,6 +130,11 @@ public sealed partial class ServicesPage : Page
     private List<ServiceRow> _rows = new();
     private readonly List<ServiceRow> _allRows = new();
 
+    /// <summary>Waits out a burst of typing before rebuilding the filtered list.</summary>
+    private readonly Optim.App.Services.Debouncer _filter = new(
+        Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread(),
+        TimeSpan.FromMilliseconds(120));
+
     public ServicesPage()
     {
         InitializeComponent();
@@ -382,17 +387,21 @@ public sealed partial class ServicesPage : Page
         return (false, $"Could not change '{row.DisplayName}' — see logs.");
     }
 
-    /// <summary>Search-as-you-type; Enter still applies for muscle memory.</summary>
+    /// <summary>
+    /// Search-as-you-type, settled after the typing pauses: filtering 200+ rows on
+    /// every keystroke meant each one threw away the list reset the previous one
+    /// had just queued. Enter still applies immediately for muscle memory.
+    /// </summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        ApplyFilter();
+        _filter.Run(ApplyFilter);
     }
 
     private void SearchBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)
         {
-            ApplyFilter();
+            _filter.Flush();
         }
     }
 

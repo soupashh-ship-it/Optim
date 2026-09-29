@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Optim.App.Localization;
 using Optim.App.Models;
 using Optim.App.Services;
@@ -94,6 +95,10 @@ public sealed partial class ShellPage : Page
         Nav.SelectedItem = target ?? Nav.MenuItems[0];
     }
 
+    /// <summary>Toasts currently animating out, so a second dismissal (the timer
+    /// and a click racing) cannot run the exit twice.</summary>
+    private readonly HashSet<Border> _dismissing = new();
+
     /// <summary>Renders a transient toast notification. Click dismisses early.</summary>
     private void ShowToast(string message, ToastKind kind)
     {
@@ -103,7 +108,14 @@ public sealed partial class ShellPage : Page
             {
                 while (ToastLayer.Children.Count >= 3)
                 {
-                    ToastLayer.Children.RemoveAt(0);
+                    if (ToastLayer.Children[0] is Border oldest)
+                    {
+                        Dismiss(oldest);
+                    }
+                    else
+                    {
+                        ToastLayer.Children.RemoveAt(0);
+                    }
                 }
 
                 var accent = kind switch
@@ -143,15 +155,27 @@ public sealed partial class ShellPage : Page
                     Padding = new Thickness(0),
                     Child = inner
                 };
-                toast.PointerPressed += (_, _) => ToastLayer.Children.Remove(toast);
 
-                ToastLayer.Children.Add(toast);
+                // Slid in from the right edge it is anchored to, so a toast reads
+                // as something arriving rather than a block appearing.
+                var slide = new CompositeTransform { TranslateX = 40 };
+                toast.RenderTransform = slide;
+                toast.Opacity = 0;
 
                 var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4.5) };
+                toast.PointerPressed += (_, _) =>
+                {
+                    timer.Stop();
+                    Dismiss(toast);
+                };
+
+                ToastLayer.Children.Add(toast);
+                AnimateIn(toast, slide);
+
                 timer.Tick += (_, _) =>
                 {
                     timer.Stop();
-                    ToastLayer.Children.Remove(toast);
+                    Dismiss(toast);
                 };
                 timer.Start();
             });
@@ -159,6 +183,120 @@ public sealed partial class ShellPage : Page
         catch (Exception ex)
         {
             Optim.Core.Logging.FileLogger.Warn($"Toast: {ex.Message}");
+        }
+    }
+
+    /// <summary>Slides and fades a toast in. Both properties animate on the
+    /// compositor, so this costs the UI thread nothing while it runs.</summary>
+    private static void AnimateIn(Border toast, CompositeTransform slide)
+    {
+        try
+        {
+            var fade = new DoubleAnimation
+            {
+                To = 1,
+                Duration = new Duration(TimeSpan.FromMilliseconds(220)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(fade, toast);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+
+            var glide = new DoubleAnimation
+            {
+                To = 0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(260)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(glide, slide);
+            Storyboard.SetTargetProperty(glide, "TranslateX");
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fade);
+            storyboard.Children.Add(glide);
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            // Motion is optional: a toast that appears without it is fine.
+            toast.Opacity = 1;
+            slide.TranslateX = 0;
+            Optim.Core.Logging.FileLogger.Warn($"Toast animation: {ex.Message}");
+        }
+    }
+
+    /// <summary>Fades a toast out, then removes it.</summary>
+    private void Dismiss(Border toast)
+    {
+        if (!_dismissing.Add(toast) || !ToastLayer.Children.Contains(toast))
+        {
+            _dismissing.Remove(toast);
+            return;
+        }
+
+        try
+        {
+            var fade = new DoubleAnimation
+            {
+                To = 0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(170)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+            };
+            Storyboard.SetTarget(fade, toast);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fade);
+            storyboard.Completed += (_, _) =>
+            {
+                ToastLayer.Children.Remove(toast);
+                _dismissing.Remove(toast);
+            };
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            // Never leave a toast on screen because its exit animation failed.
+            ToastLayer.Children.Remove(toast);
+            _dismissing.Remove(toast);
+            Optim.Core.Logging.FileLogger.Warn($"Toast dismiss: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Fades freshly navigated content in. Tab switching stays instant - there is
+    /// no transition to sit through - but the arrival is soft instead of a hard
+    /// cut, which is what makes a page feel like it settled rather than snapped.
+    /// </summary>
+    private void FadeInContent()
+    {
+        if (ContentFrame.Content is not UIElement content)
+        {
+            return;
+        }
+
+        try
+        {
+            content.Opacity = 0;
+            var fade = new DoubleAnimation
+            {
+                To = 1,
+                Duration = new Duration(TimeSpan.FromMilliseconds(140)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(fade, content);
+            Storyboard.SetTargetProperty(fade, "Opacity");
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fade);
+            // Safety net: content must never stay invisible if the animation is
+            // interrupted (a second navigation landing mid-fade).
+            storyboard.Completed += (_, _) => content.Opacity = 1;
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            content.Opacity = 1;
+            Optim.Core.Logging.FileLogger.Warn($"Content fade: {ex.Message}");
         }
     }
 
@@ -190,6 +328,7 @@ public sealed partial class ShellPage : Page
             && (ContentFrame.Content is null || ContentFrame.Content.GetType() != pageType))
         {
             ContentFrame.Navigate(pageType, PageTitles.GetValueOrDefault(tag, ""));
+            FadeInContent();
         }
     }
 
@@ -228,10 +367,12 @@ public sealed partial class ShellPage : Page
                 || ContentFrame.Content.GetType() != pageType)
             {
                 ContentFrame.Navigate(pageType, param);
+                FadeInContent();
             }
             else if (target is null)
             {
                 ContentFrame.Navigate(pageType, param);
+                FadeInContent();
             }
         }
     }

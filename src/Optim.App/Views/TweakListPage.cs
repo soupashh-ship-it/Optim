@@ -71,6 +71,14 @@ public abstract class TweakListPage : Page
         try
         {
             _root = new StackPanel { Spacing = 4 };
+            // Cards arrive in batches while state detection finishes. A short
+            // entrance per batch turns that fill-in into deliberate motion
+            // instead of the list appearing in visible chunks. Filtering only
+            // toggles visibility, so it never re-animates the page.
+            _root.ChildrenTransitions = new TransitionCollection
+            {
+                new EntranceThemeTransition { IsStaggeringEnabled = false, FromVerticalOffset = 12 }
+            };
             _header = new TextBlock
             {
                 Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],

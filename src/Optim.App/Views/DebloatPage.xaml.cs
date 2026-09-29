@@ -46,6 +46,11 @@ public sealed partial class DebloatPage : Page
     private List<PackageRow> _all = new();
     private bool _busy;
 
+    /// <summary>Waits out a burst of typing before rebuilding the filtered list.</summary>
+    private readonly Optim.App.Services.Debouncer _filter = new(
+        Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread(),
+        TimeSpan.FromMilliseconds(120));
+
     public DebloatPage()
     {
         InitializeComponent();
@@ -93,7 +98,7 @@ public sealed partial class DebloatPage : Page
         }
     }
 
-    private void Search_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
+    private void Search_TextChanged(object sender, TextChangedEventArgs e) => _filter.Run(ApplyFilter);
 
     /// <summary>
     /// One ItemsSource swap per filter change instead of a clear plus one add
