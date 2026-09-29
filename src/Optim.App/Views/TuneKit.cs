@@ -14,11 +14,31 @@ namespace Optim.App.Views;
 /// </summary>
 internal static class TuneKit
 {
+    /// <summary>
+    /// Brushes are shared, not re-created per pill. A category page builds one
+    /// pill per row (impact + worth, sometimes kept-safe), so per-pill brushes
+    /// meant hundreds of duplicate brush objects on the compositor's books for
+    /// a fixed handful of colors. Always touched on the UI thread while building
+    /// or updating cards, so no locking is needed.
+    /// </summary>
+    private static readonly Dictionary<Color, SolidColorBrush> BrushCache = new();
+
+    private static SolidColorBrush Brush(Color color)
+    {
+        if (!BrushCache.TryGetValue(color, out var brush))
+        {
+            brush = new SolidColorBrush(color);
+            BrushCache[color] = brush;
+        }
+
+        return brush;
+    }
+
     public static Border Pill(string text, Color background, Color foreground)
     {
         return new Border
         {
-            Background = new SolidColorBrush(background),
+            Background = Brush(background),
             CornerRadius = new CornerRadius(10),
             Padding = new Thickness(8, 2, 8, 3),
             VerticalAlignment = VerticalAlignment.Center,
@@ -26,7 +46,7 @@ internal static class TuneKit
             {
                 Text = text,
                 FontSize = 11,
-                Foreground = new SolidColorBrush(foreground)
+                Foreground = Brush(foreground)
             }
         };
     }
@@ -44,11 +64,18 @@ internal static class TuneKit
     /// <summary>Marks a tweak that has a journaled change ready to roll back.</summary>
     public static Border KeptSafePill()
     {
-        var pill = Pill("Kept safe", Colors.Transparent, Color.FromArgb(0xFF, 0x99, 0x99, 0x99));
-        pill.BorderBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x99, 0x99, 0x99));
+        var muted = Color.FromArgb(0xFF, 0x99, 0x99, 0x99);
+        var pill = Pill("Kept safe", Colors.Transparent, muted);
+        pill.BorderBrush = Brush(muted);
         pill.BorderThickness = new Thickness(1);
         return pill;
     }
+
+    /// <summary>Palette entries card templates reuse, so a page does not build a
+    /// brush per row for a fixed color.</summary>
+    public static SolidColorBrush TransparentBrush => Brush(Colors.Transparent);
+
+    public static SolidColorBrush WarningBrush => Brush(Colors.Orange);
 
     public static TextBlock SectionHeader(string text)
     {

@@ -105,7 +105,11 @@ public abstract class TweakListPage : Page
             };
             _advanced.Checked += (_, _) => ApplyFilter();
             _advanced.Unchecked += (_, _) => ApplyFilter();
-            Unloaded += (_, _) => _alive = false;
+            // Deliberately no Unloaded handler: the page instance is cached, so a
+            // load still in flight when the user switches tabs finishes into the
+            // detached tree. Aborting it here meant re-detecting and rebuilding
+            // every card on the next visit, which is the cost caching exists to
+            // avoid.
 
             // One parent per element: search + count live in the toolbar, and the
             // toolbar is the single child added to the page panel. Adding an
@@ -169,6 +173,10 @@ public abstract class TweakListPage : Page
         // A cached page can be navigated to again right after an Unloaded pass.
         _alive = true;
 
+        // Settings can revert changes from outside this page, so the journal view
+        // is re-read on every visit instead of carried over from the last one.
+        InvalidateJournal();
+
         Header = title;
         Subtitle = Category switch
         {
@@ -220,7 +228,20 @@ public abstract class TweakListPage : Page
 
     private bool _bulkOp;
 
-    private HashSet<string> JournaledIds()
+    private HashSet<string>? _journalCache;
+
+    /// <summary>
+    /// Cached view of the journal for the current page load. Reading it takes a
+    /// global mutex and a JSON file read, and RefreshHero asks for it after every
+    /// card batch, so an uncached read made one page load pay for that file a
+    /// dozen times over on the UI thread. Anything that can write the journal
+    /// drops the cache first.
+    /// </summary>
+    private HashSet<string> JournaledIds() => _journalCache ??= ReadJournalIds();
+
+    private void InvalidateJournal() => _journalCache = null;
+
+    private static HashSet<string> ReadJournalIds()
     {
         try
         {
@@ -449,9 +470,10 @@ public abstract class TweakListPage : Page
                 tc.StateLabel.Text = tc.Row.IsOn ? "On" : "Off";
                 if ((done + failedCount) % 5 == 0)
                 {
-                    await Task.Yield();
+                    await YieldToUiAsync();
                 }
             }
+            InvalidateJournal();
             RefreshSavedTags();
             var (applied, failed) = (done, failedCount);
             ToastService.Show(
@@ -541,6 +563,7 @@ public abstract class TweakListPage : Page
         {
             var ids = targets.Select(c => c.Row.Definition.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var replayed = await Task.Run(() => engine.RevertTweaksFromJournal(ids));
+            InvalidateJournal();
             foreach (var tc in targets)
             {
                 tc.Row.ResnapFromSystem();
@@ -617,6 +640,8 @@ public abstract class TweakListPage : Page
         // Generation token: a later load (e.g. a search jump arriving while the
         // first load is still batching) supersedes this one, so batches from the
         // abandoned run never append cards or steal the highlight.
+        // Note: navigating away does not abort a load. The grid is cached, so
+        // finishing while detached is what makes the next visit instant.
         var generation = ++_loadGeneration;
         _fullyLoaded = false;
         _cards.Clear();
@@ -641,9 +666,8 @@ public abstract class TweakListPage : Page
             const int BatchSize = 10;
             for (var i = 0; i < states.Count; i += BatchSize)
             {
-                // Stopped adding if the user navigated away mid-load or a newer
-                // load superseded this one.
-                if (!_alive || generation != _loadGeneration)
+                // Only a newer load supersedes this one.
+                if (generation != _loadGeneration)
                 {
                     return;
                 }
@@ -675,7 +699,7 @@ public abstract class TweakListPage : Page
                 RefreshHero();
                 // Yield (not sleep: Task.Delay clamps to ~15ms on Windows) so
                 // input and animations get a turn between batches.
-                await Task.Yield();
+                await YieldToUiAsync();
             }
 
             if (generation != _loadGeneration)
@@ -698,9 +722,31 @@ public abstract class TweakListPage : Page
         }
     }
 
+    /// <summary>False between Unloaded and the next OnNavigatedTo. Gates only the
+    /// arrival highlight: scrolling and pulsing a page the user is not looking at
+    /// is pointless. It does not gate card building.</summary>
     private bool _alive = true;
     private bool _fullyLoaded;
     private int _loadGeneration;
+
+    /// <summary>
+    /// Hands the UI thread back at low priority. Task.Yield requeues at normal
+    /// priority and competes with input and rendering; a low-priority enqueue
+    /// lets the compositor and pointer handlers run first, so a batch of settings
+    /// cards never lands in the middle of a scroll.
+    /// </summary>
+    private Task YieldToUiAsync()
+    {
+        var done = new TaskCompletionSource();
+        if (!DispatcherQueue.TryEnqueue(
+                Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,
+                () => done.TrySetResult()))
+        {
+            done.TrySetResult();
+        }
+
+        return done.Task;
+    }
 
     // Resource lookups per card (dozens of tweaks per page) show up in
     // navigation traces; resolve once. The styles themselves reference theme
@@ -744,7 +790,7 @@ public abstract class TweakListPage : Page
             {
                 Text = "Restart required",
                 Style = CaptionStyle,
-                Foreground = new SolidColorBrush(Microsoft.UI.Colors.Orange),
+                Foreground = TuneKit.WarningBrush,
                 Visibility = row.HasRestartNote ? Visibility.Visible : Visibility.Collapsed
             };
             var advancedTag = new TextBlock
@@ -767,7 +813,7 @@ public abstract class TweakListPage : Page
             {
                 Content = new FontIcon { Glyph = "\uE946", FontSize = 12 },
                 Padding = new Thickness(8, 2, 8, 2),
-                Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                Background = TuneKit.TransparentBrush,
                 BorderThickness = new Thickness(0),
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -830,7 +876,7 @@ public abstract class TweakListPage : Page
             var card = new Border
             {
                 BorderThickness = new Thickness(2),
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+                BorderBrush = TuneKit.TransparentBrush,
                 CornerRadius = new CornerRadius(8),
                 Child = new SettingsCard
                 {
@@ -885,6 +931,8 @@ public abstract class TweakListPage : Page
         var card = _cards.FirstOrDefault(c => ReferenceEquals(c.Row, row));
         if (card is not null)
         {
+            // The write above may have journaled this tweak: drop the cached view.
+            InvalidateJournal();
             card.SavedTag.Visibility = JournaledIds().Contains(row.Definition.Id)
                 ? Visibility.Visible : Visibility.Collapsed;
             card.StateLabel.Text = row.IsOn ? "On" : "Off";
@@ -1019,7 +1067,7 @@ public abstract class TweakListPage : Page
         {
             // Back to a transparent accent slot: the reserved 2px border keeps
             // the row's layout identical to its highlighted state.
-            _highlightedCard.BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            _highlightedCard.BorderBrush = TuneKit.TransparentBrush;
             _highlightedCard.BorderThickness = new Thickness(2);
         }
         catch

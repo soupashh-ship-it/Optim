@@ -13,12 +13,18 @@ namespace Optim.App.Views;
 /// </summary>
 public sealed partial class FeaturesPage : TweakListPage
 {
-    private bool _featuresAlive = true;
     private bool _featureOpRunning;
     private TextBox? _featureSearch;
     private TextBlock? _featureStatus;
     private StackPanel? _featureList;
     private List<OptionalFeature> _features = new();
+
+    /// <summary>
+    /// One built card per feature, kept so the search box filters by visibility.
+    /// Rebuilding ~150 settings cards on every keystroke was the most expensive
+    /// thing this page did.
+    /// </summary>
+    private readonly List<(OptionalFeature Feature, FrameworkElement Card)> _featureCards = new();
 
     public FeaturesPage()
     {
@@ -27,13 +33,6 @@ public sealed partial class FeaturesPage : TweakListPage
     }
 
     protected override TweakCategory Category => TweakCategory.Features;
-
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
-    {
-        // Cached page: Unloaded fires on every tab switch; re-arm here.
-        _featuresAlive = true;
-        base.OnNavigatedTo(e);
-    }
 
     protected override IEnumerable<FrameworkElement> BuildFooter()
     {
@@ -58,7 +57,7 @@ public sealed partial class FeaturesPage : TweakListPage
             HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(0, 0, 0, 8)
         };
-        _featureSearch.TextChanged += (_, _) => RenderFeatureList();
+        _featureSearch.TextChanged += (_, _) => ApplyFeatureFilter();
 
         _featureStatus = new TextBlock
         {
@@ -77,9 +76,6 @@ public sealed partial class FeaturesPage : TweakListPage
         panel.Children.Add(_featureStatus);
         panel.Children.Add(_featureList);
 
-        // The base class keeps its own alive flag; this one guards the footer's async loads.
-        Unloaded += (_, _) => _featuresAlive = false;
-
         _ = LoadFeaturesAsync();
 
         yield return panel;
@@ -95,23 +91,22 @@ public sealed partial class FeaturesPage : TweakListPage
         _featureOpRunning = true;
         try
         {
-            // DISM enumeration takes seconds: background thread, then render
-            // in batches so the page stays responsive.
+            // DISM enumeration takes seconds: keep it off the UI thread. The
+            // result is kept even if the user switched tabs while it ran, since
+            // the page is cached: discarding it here meant paying those seconds
+            // again on the next visit.
             var features = await Task.Run(DismFeatureEngine.ListFeatures);
-            if (!_featuresAlive)
-            {
-                return;
-            }
 
             _features = features.ToList();
             _featureStatus!.Text = TuneKit.Count(_features.Count, "optional feature", "optional features")
                 + $" · {_features.Count(f => f.IsEnabled)} enabled";
-            RenderFeatureList();
+            BuildFeatureCards();
+            ApplyFeatureFilter();
         }
         catch (Exception ex)
         {
             Optim.Core.Logging.FileLogger.Error($"DISM list: {ex.Message}");
-            if (_featureStatus is not null && _featuresAlive)
+            if (_featureStatus is not null)
             {
                 _featureStatus.Text = "Could not enumerate optional features — run Optim elevated and check logs.";
             }
@@ -122,8 +117,11 @@ public sealed partial class FeaturesPage : TweakListPage
         }
     }
 
-    /// <summary>Renders the feature cards, honoring the search box. Rebuilt per call: cheap at ~150 rows.</summary>
-    private void RenderFeatureList()
+    /// <summary>
+    /// Builds one card per feature. Called only when the feature list itself
+    /// changes (load, or a re-read after a DISM toggle) - never per keystroke.
+    /// </summary>
+    private void BuildFeatureCards()
     {
         if (_featureList is null)
         {
@@ -131,20 +129,30 @@ public sealed partial class FeaturesPage : TweakListPage
         }
 
         _featureList.Children.Clear();
-        var query = _featureSearch?.Text?.Trim() ?? string.Empty;
-        var visible = 0;
+        _featureCards.Clear();
         foreach (var feature in _features)
         {
-            if (query.Length > 0
-                && !feature.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)
-                && !feature.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-                && !feature.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+            var card = BuildFeatureCard(feature);
+            _featureCards.Add((feature, card));
+            _featureList.Children.Add(card);
+        }
+    }
 
-            _featureList.Children.Add(BuildFeatureCard(feature));
-            visible++;
+    /// <summary>
+    /// Applies the search box by toggling card visibility. Hiding a card is a
+    /// property change; rebuilding it means a fresh SettingsCard template, icon
+    /// and toggle for every one of ~150 rows while the user is typing.
+    /// </summary>
+    private void ApplyFeatureFilter()
+    {
+        var query = _featureSearch?.Text?.Trim() ?? string.Empty;
+        foreach (var (feature, card) in _featureCards)
+        {
+            var matches = query.Length == 0
+                || feature.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || feature.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || feature.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+            card.Visibility = matches ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
@@ -191,7 +199,7 @@ public sealed partial class FeaturesPage : TweakListPage
         return new Border
         {
             BorderThickness = new Thickness(2),
-            BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            BorderBrush = TuneKit.TransparentBrush,
             CornerRadius = new CornerRadius(8),
             Child = new CommunityToolkit.WinUI.Controls.SettingsCard
             {
