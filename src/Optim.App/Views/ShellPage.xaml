@@ -81,6 +81,9 @@
             SelectionChanged="Nav_SelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem x:Uid="Nav_Home" Content="Home" Tag="home" Icon="Home"/>
+                <NavigationViewItem x:Uid="Nav_QuickTweaks" Content="Quick Tweaks" Tag="quicktweaks">
+                    <NavigationViewItem.Icon><FontIcon Glyph="&#xE7B7;"/></NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItemSeparator/>
                 <NavigationViewItem x:Uid="Nav_Optimize" Content="Optimize" Tag="optimize">
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xF259;"/></NavigationViewItem.Icon>

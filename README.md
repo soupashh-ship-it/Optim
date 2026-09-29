@@ -13,11 +13,12 @@ tuning, privacy hardening, and deep system insight into one clean Fluent app.
 | Module      | What it does                                                              |
 |-------------|---------------------------------------------------------------------------|
 | 🏠 Home      | Live CPU / memory / disk usage with quick actions (temp clean, recycle bin, DNS flush, restore point) |
+| ✨ Quick Tweaks | Curated bundles (Minimal / Standard / Advanced) applied and reverted in one click, composed live from the tweak catalog |
 | ⚡ Optimize   | Performance toggles (basic + advanced tiers) + power-plan switcher        |
 | 🛡️ Privacy   | Telemetry, advertising ID, activity history, Recall, Cortana, location    |
 | 🧩 Features  | Real DISM optional-feature toggles + registry feature tweaks (widgets, Copilot, hibernation, classic context menu) |
 | 🧹 Debloat   | Installed appx list with multi-select uninstall, protected components, and a **reinstall** escape hatch |
-| ⚙️ Services  | Start/stop/restart and start-type changes (Automatic/Manual/Disabled/Delayed) for every service — boot-critical ones stay read-only, changes journaled |
+| ⚙️ Services  | Start/stop/restart and start-type changes (Automatic/Manual/Disabled/Delayed) for every service — boot-critical ones stay read-only, changes journaled; Task Manager-style "hide Microsoft services" filter |
 | 📋 Processes | Live process list with priority classes, per-CPU affinity, and guarded end-task |
 | 🚀 Startup   | User + machine Run keys and startup folder with enable/disable/delete     |
 | 📦 Packages  | winget-driven upgrade discovery and one-click upgrades (with confirm)     |

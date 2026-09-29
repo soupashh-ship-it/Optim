@@ -19,6 +19,7 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
             <Button Content="Refresh" Click="Refresh_Click"/>
             <TextBox x:Name="SearchBox" Width="240" PlaceholderText="Search services…" TextChanged="SearchBox_TextChanged" KeyDown="SearchBox_KeyDown"/>
+            <ToggleButton x:Name="HideMicrosoftToggle" Content="Hide Microsoft services" Click="HideMicrosoft_Click"/>
             <TextBlock x:Name="CountText" VerticalAlignment="Center" Opacity="0.5"/>
         </StackPanel>
 

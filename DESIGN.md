@@ -81,6 +81,7 @@ applying batches; failures are reported per-tweak, never partially silent.
 | Page       | Function                                                                 |
 |------------|--------------------------------------------------------------------------|
 | Home       | Live CPU/RAM/disk usage graph, counts of apps/services, quick actions    |
+| QuickTweaks | Preset bundles (Minimal/Standard/Advanced) derived live from the catalog |
 | Optimize   | Catalog-driven performance toggles (visual effects, menu delay, etc.)    |
 | Privacy    | Telemetry, advertising ID, activity history, tracking toggles            |
 | Features   | Catalog tweaks plus real DISM optional-feature toggles                    |

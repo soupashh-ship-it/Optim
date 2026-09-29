@@ -3,7 +3,7 @@ using Optim.Core.Tweaks;
 
 namespace Optim.Core.ServicesMgmt;
 
-public sealed record ServiceEntry(string Name, string DisplayName, ServiceStartMode StartMode, ServiceControllerStatus Status, bool CanModify, bool IsCritical, bool IsRunning, string Description, bool StartModeKnown, bool IsDelayedAuto);
+public sealed record ServiceEntry(string Name, string DisplayName, ServiceStartMode StartMode, ServiceControllerStatus Status, bool CanModify, bool IsCritical, bool IsRunning, string Description, bool StartModeKnown, bool IsDelayedAuto, bool IsMicrosoft);
 
 /// <summary>
 /// Service management. Every service is controllable — start/stop/restart and
@@ -63,7 +63,8 @@ public sealed class ServiceEngine
                 try { running = sc.Status == ServiceControllerStatus.Running; } catch { }
                 var critical = IsCritical(sc.ServiceName);
                 var delayed = mode.Mode == ServiceStartMode.Automatic && IsDelayedAuto(sc.ServiceName);
-                result.Add(new ServiceEntry(sc.ServiceName, SafeDisplayName(sc), mode.Mode, StatusOf(sc), !critical, critical, running, ServiceDescription(sc.ServiceName), mode.Known, delayed));
+                var (description, imagePath) = ReadServiceRegistry(sc.ServiceName);
+                result.Add(new ServiceEntry(sc.ServiceName, SafeDisplayName(sc), mode.Mode, StatusOf(sc), !critical, critical, running, description, mode.Known, delayed, IsMicrosoftPath(imagePath)));
             }
             catch (Exception ex)
             {
@@ -87,24 +88,58 @@ public sealed class ServiceEngine
         catch { return sc.ServiceName; }
     }
 
-    private static string ServiceDescription(string serviceName)
+    private static (string Description, string ImagePath) ReadServiceRegistry(string serviceName)
     {
         try
         {
             using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
                 $@"SYSTEM\CurrentControlSet\Services\{serviceName}");
-            var raw = key?.GetValue("Description")?.ToString();
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                return "";
-            }
-
-            return Environment.ExpandEnvironmentVariables(raw);
+            var rawDescription = key?.GetValue("Description")?.ToString();
+            var description = string.IsNullOrWhiteSpace(rawDescription)
+                ? ""
+                : Environment.ExpandEnvironmentVariables(rawDescription);
+            var imagePath = key?.GetValue("ImagePath")?.ToString();
+            return (description, imagePath ?? "");
         }
         catch
         {
-            return "";
+            return ("", "");
         }
+    }
+
+    /// <summary>
+    /// True when the service binary lives in the Windows directory — the same
+    /// signal Task Manager's "Hide all Microsoft services" uses. Covers svchost
+    /// hosts (ImagePath is C:\WINDOWS\system32\svchost.exe) and drivers whose
+    /// ImagePath is recorded as \SystemRoot\... . Third-party services install
+    /// under Program Files or elsewhere, so they stay visible.
+    /// </summary>
+    public static bool IsMicrosoftPath(string? imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath))
+        {
+            return false;
+        }
+
+        var path = imagePath.Trim().Trim('"');
+        if (path.StartsWith(@"\SystemRoot\", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (path.StartsWith(@"\??\", StringComparison.OrdinalIgnoreCase))
+        {
+            path = path[4..];
+        }
+
+        var windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        if (windir.Length == 0)
+        {
+            windir = @"C:\Windows";
+        }
+
+        return path.StartsWith(windir + @"\", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith(@"C:\Windows\", StringComparison.OrdinalIgnoreCase);
     }
 
     private static ServiceControllerStatus StatusOf(ServiceController sc)

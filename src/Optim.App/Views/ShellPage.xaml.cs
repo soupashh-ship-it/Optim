@@ -14,6 +14,7 @@ public sealed partial class ShellPage : Page
     private static readonly Dictionary<string, Type> Routes = new()
     {
         ["home"] = typeof(HomePage),
+        ["quicktweaks"] = typeof(QuickTweaksPage),
         ["optimize"] = typeof(OptimizePage),
         ["privacy"] = typeof(PrivacyPage),
         ["features"] = typeof(FeaturesPage),
@@ -38,6 +39,7 @@ public sealed partial class ShellPage : Page
     private static readonly Dictionary<string, string> PageTitles = new()
     {
         ["home"] = Loc.Get("Page_Home", "Home"),
+        ["quicktweaks"] = Loc.Get("Page_QuickTweaks", "Quick Tweaks"),
         ["optimize"] = Loc.Get("Page_Optimize", "System Optimizations"),
         ["privacy"] = Loc.Get("Page_Privacy", "Privacy"),
         ["features"] = Loc.Get("Page_Features", "Windows Features"),

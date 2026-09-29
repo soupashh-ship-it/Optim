@@ -1,0 +1,100 @@
+<Page
+    x:Class="Optim.App.Views.QuickTweaksPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12" MaxWidth="1000" HorizontalAlignment="Stretch">
+
+            <StackPanel Spacing="2" Margin="0,0,0,4">
+                <TextBlock Text="Quick Tweaks" Style="{StaticResource TitleTextBlockStyle}"/>
+                <TextBlock Text="Curated tweak bundles, applied and reverted with one click. Every bundle is built from the same catalog as the per-tweak pages — and every change stays reversible from Settings."
+                           Style="{StaticResource CardDescStyle}" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <InfoBar x:Name="ResultInfo" IsOpen="False" IsClosable="True"/>
+
+            <!-- Minimal -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Minimal" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock x:Name="minimalCountPill" Text="…" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="The gentlest set: recommended privacy essentials only. Nothing advanced, nothing that changes how the system feels — safe for any PC."
+                                   Style="{StaticResource CardDescStyle}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <ProgressRing x:Name="minimalRing" IsActive="False" Visibility="Collapsed" Width="24" Height="24"/>
+                        <Button x:Name="minimalDetails" Content="Details" Tag="minimal" Click="Details_Click"/>
+                        <Button x:Name="minimalRevert" Content="Revert" Click="MinimalRevert_Click"/>
+                        <Button x:Name="minimalApply" Content="Apply all" Click="MinimalApply_Click" Style="{StaticResource BrandButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Standard -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Standard" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock x:Name="standardCountPill" Text="…" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Opacity="0.7" VerticalAlignment="Center"/>
+                            <Border Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="8"
+                                    Padding="6,1,6,2" VerticalAlignment="Center">
+                                <TextBlock Text="Recommended" FontSize="11" Foreground="White"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Balanced defaults for most users: every recommended gentle performance and privacy tweak. This is the set Optim's tune score is built around."
+                                   Style="{StaticResource CardDescStyle}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <ProgressRing x:Name="standardRing" IsActive="False" Visibility="Collapsed" Width="24" Height="24"/>
+                        <Button x:Name="standardDetails" Content="Details" Tag="standard" Click="Details_Click"/>
+                        <Button x:Name="standardRevert" Content="Revert" Click="StandardRevert_Click"/>
+                        <Button x:Name="standardApply" Content="Apply all" Click="StandardApply_Click" Style="{StaticResource BrandButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Advanced -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Advanced" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <TextBlock x:Name="advancedCountPill" Text="…" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Opacity="0.7" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Deep tweaks for power users: everything in Standard plus the moderate tier — service tuning, network throttling, indexing and friends. Hardware-dependent bold tweaks stay excluded."
+                                   Style="{StaticResource CardDescStyle}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <ProgressRing x:Name="advancedRing" IsActive="False" Visibility="Collapsed" Width="24" Height="24"/>
+                        <Button x:Name="advancedDetails" Content="Details" Tag="advanced" Click="Details_Click"/>
+                        <Button x:Name="advancedRevert" Content="Revert" Click="AdvancedRevert_Click"/>
+                        <Button x:Name="advancedApply" Content="Apply all" Click="AdvancedApply_Click" Style="{StaticResource BrandButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="Presets are derived live from the tweak catalog — opening Details shows exactly which tweaks each bundle contains and which are already on, before anything is changed."
+                       Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6" TextWrapping="Wrap"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

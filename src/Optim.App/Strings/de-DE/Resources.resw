@@ -22,6 +22,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Start</value>
   </data>
+  <data name="Nav_QuickTweaks.Content" xml:space="preserve">
+    <value>Schnelle Tweaks</value>
+  </data>
   <data name="Nav_Optimize.Content" xml:space="preserve">
     <value>Optimieren</value>
   </data>
@@ -70,6 +73,9 @@
   <!-- Seitenüberschriften -->
   <data name="Page_Home" xml:space="preserve">
     <value>Startseite</value>
+  </data>
+  <data name="Page_QuickTweaks" xml:space="preserve">
+    <value>Schnelle Tweaks</value>
   </data>
   <data name="Page_Optimize" xml:space="preserve">
     <value>Systemoptimierung</value>

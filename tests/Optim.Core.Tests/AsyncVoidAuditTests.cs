@@ -39,6 +39,17 @@ public class AsyncVoidAuditTests
         "Optim.App.Views.TweakListPage.RollbackCategory_Click",
         "Optim.App.Views.TweakListPage.ShowTweakInfo",
 
+        // QuickTweaksPage: thin wrappers around RunPresetAsync/Details_Click,
+        // whose bodies are fully try/catch-guarded (InfoBar + log). The wrappers
+        // themselves add no logic that can throw.
+        "Optim.App.Views.QuickTweaksPage.MinimalApply_Click",
+        "Optim.App.Views.QuickTweaksPage.MinimalRevert_Click",
+        "Optim.App.Views.QuickTweaksPage.StandardApply_Click",
+        "Optim.App.Views.QuickTweaksPage.StandardRevert_Click",
+        "Optim.App.Views.QuickTweaksPage.AdvancedApply_Click",
+        "Optim.App.Views.QuickTweaksPage.AdvancedRevert_Click",
+        "Optim.App.Views.QuickTweaksPage.Details_Click",
+
         // Home: guarded bodies; the metrics ticker is wrapped in try/catch.
         "Optim.App.Views.HomePage.FlushDns_Click",
         "Optim.App.Views.HomePage.RestorePoint_Click",

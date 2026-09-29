@@ -29,6 +29,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Home</value>
   </data>
+  <data name="Nav_QuickTweaks.Content" xml:space="preserve">
+    <value>Quick Tweaks</value>
+  </data>
   <data name="Nav_Optimize.Content" xml:space="preserve">
     <value>Optimize</value>
   </data>
@@ -77,6 +80,9 @@
   <!-- Page headings (also the navigation payload the shell passes to a page) -->
   <data name="Page_Home" xml:space="preserve">
     <value>Home</value>
+  </data>
+  <data name="Page_QuickTweaks" xml:space="preserve">
+    <value>Quick Tweaks</value>
   </data>
   <data name="Page_Optimize" xml:space="preserve">
     <value>System Optimizations</value>

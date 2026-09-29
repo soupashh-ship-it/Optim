@@ -35,6 +35,9 @@ public sealed class ServiceRow : INotifyPropertyChanged
     public bool HasDescription => !string.IsNullOrWhiteSpace(Entry.Description);
     public string StatusText => Entry.IsRunning ? "Running" : "Stopped";
 
+    /// <summary>True when the service binary lives in the Windows directory (Task Manager's Microsoft-services signal).</summary>
+    public bool IsMicrosoft => Entry.IsMicrosoft;
+
     /// <summary>False for boot-critical services: combo and buttons render disabled.</summary>
     public bool CanModify => Entry.CanModify;
 
@@ -158,7 +161,9 @@ public sealed partial class ServicesPage : Page
     private async Task ApplyFilterAsync()
     {
         var query = SearchBox.Text?.Trim() ?? string.Empty;
-        IEnumerable<ServiceRow> visible = _allRows;
+        IEnumerable<ServiceRow> visible = _hideMicrosoft
+            ? _allRows.Where(r => !r.IsMicrosoft)
+            : _allRows;
         if (query.Length > 0)
         {
             visible = _allRows.Where(r =>
@@ -186,10 +191,13 @@ public sealed partial class ServicesPage : Page
         }
 
         var running = _allRows.Count(r => r.Entry.IsRunning);
+        var suffix = _hideMicrosoft ? " · Microsoft services hidden" : "";
         CountText.Text = query.Length == 0
-            ? $"{_allRows.Count} services · {running} running"
-            : $"{_rows.Count} of {_allRows.Count} services match · {running} running";
+            ? $"{_allRows.Count} services · {running} running{suffix}"
+            : $"{_rows.Count} of {_allRows.Count} services match · {running} running{suffix}";
     }
+
+    private bool _hideMicrosoft;
 
     private bool _populating;
     private bool _changing;
@@ -221,6 +229,13 @@ public sealed partial class ServicesPage : Page
     }
 
     private void Refresh_Click(object sender, RoutedEventArgs e) => Load(force: true);
+
+    /// <summary>Task Manager-style filter: drop services whose binary lives in the Windows directory.</summary>
+    private void HideMicrosoft_Click(object sender, RoutedEventArgs e)
+    {
+        _hideMicrosoft = HideMicrosoftToggle.IsChecked == true;
+        _ = ApplyFilterAsync();
+    }
 
     private async void Mode_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

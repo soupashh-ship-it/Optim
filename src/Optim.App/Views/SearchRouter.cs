@@ -41,6 +41,7 @@ public static class SearchRouter
         (string Name, string Route, string Glyph)[] pages =
         {
             ("Home", "home", "\uE80F"),
+            ("Quick Tweaks", "quicktweaks", "\uE7B7"),
             ("Optimize", "optimize", "\uF259"),
             ("Privacy", "privacy", "\uE7B3"),
             ("Features", "features", "\uE74C"),
@@ -90,6 +91,12 @@ public static class SearchRouter
         foreach (var name in ServiceEngine.VettedNames)
         {
             items.Add(new SearchItem(name, "Service", "\uE9F5", "services"));
+        }
+        foreach (var preset in TweakPresets.All)
+        {
+            items.Add(new SearchItem(
+                $"{preset.Title} preset", "Quick Tweaks", "\uE7B7", "quicktweaks",
+                Keywords: $"bundle preset apply {preset.Title} quick tweaks"));
         }
 
         (string Title, string Category, string Route, string Keywords)[] shortcuts =
