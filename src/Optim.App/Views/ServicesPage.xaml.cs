@@ -136,7 +136,56 @@ public sealed partial class ServicesPage : Page
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
         // Staggered entrance animations on 200+ rows feel heavy; rows just appear.
         ServicesList.ItemContainerTransitions?.Clear();
+
+        // Handled-events-too: the wheel is watched here whether or not a row's
+        // drop-down consumed it, because that is exactly the case that used to
+        // raise a confirm dialog.
+        ServicesList.AddHandler(
+            Microsoft.UI.Xaml.UIElement.PointerWheelChangedEvent,
+            new Microsoft.UI.Xaml.Input.PointerEventHandler(List_PointerWheelChanged),
+            handledEventsToo: true);
+
         Loaded += (_, _) => Load();
+    }
+
+    /// <summary>
+    /// True while the mouse wheel is turning over the list. A drop-down that
+    /// changes while the user is scrolling is not a decision: the pointer simply
+    /// travelled over the cell on its way down the list, and acting on it asked
+    /// people to confirm disabling services they never touched. The window is
+    /// short so it cannot swallow a deliberate pick, which does not involve the
+    /// wheel at all.
+    /// </summary>
+    private bool IsScrolling => Environment.TickCount64 < _scrollingUntil;
+
+    private long _scrollingUntil;
+
+    private void List_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        _scrollingUntil = Environment.TickCount64 + 250;
+    }
+
+    /// <summary>Set while the code below repaints a drop-down, so its own
+    /// SelectionChanged does not get treated as user input.</summary>
+    private bool _syncing;
+
+    /// <summary>Repaints a row's drop-down from the value that is actually applied.</summary>
+    private void SyncComboBox(ComboBox combo, int appliedIndex)
+    {
+        if (combo.SelectedIndex == appliedIndex)
+        {
+            return;
+        }
+
+        _syncing = true;
+        try
+        {
+            combo.SelectedIndex = appliedIndex;
+        }
+        finally
+        {
+            _syncing = false;
+        }
     }
 
     // ServiceController is plain .NET, safe on a background thread.
@@ -236,7 +285,7 @@ public sealed partial class ServicesPage : Page
     {
         try
         {
-            if (_populating)
+            if (_populating || _syncing)
             {
                 return;
             }
@@ -249,6 +298,15 @@ public sealed partial class ServicesPage : Page
             var index = cb.SelectedIndex;
             if (index == row.AppliedIndex)
             {
+                return;
+            }
+
+            // Scrolling must never change a service. Revert the cell and behave as
+            // if the change never happened; a real edit comes from opening the
+            // drop-down or from the keyboard, neither of which touches the wheel.
+            if (IsScrolling)
+            {
+                SyncComboBox(cb, row.AppliedIndex);
                 return;
             }
 

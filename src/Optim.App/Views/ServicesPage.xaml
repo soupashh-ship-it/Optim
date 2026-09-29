@@ -45,8 +45,11 @@
                         </StackPanel>
                         <TextBlock Grid.Column="1" Text="{x:Bind StatusText}" VerticalAlignment="Center" Opacity="0.8"/>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                            <!-- One-way: the row is the single source of truth, so a
+                                 recycled container can never push a stale index back
+                                 into the service it was just rebound to. -->
                             <ComboBox MinWidth="130" IsEnabled="{x:Bind CanChange}"
-                                      SelectedIndex="{x:Bind StartModeIndex, Mode=TwoWay}" SelectionChanged="Mode_SelectionChanged">
+                                      SelectedIndex="{x:Bind StartModeIndex, Mode=OneWay}" SelectionChanged="Mode_SelectionChanged">
                                 <ComboBoxItem Content="Automatic"/>
                                 <ComboBoxItem Content="Manual"/>
                                 <ComboBoxItem Content="Disabled"/>
