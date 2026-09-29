@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -51,7 +50,7 @@ public sealed class StartupRow : INotifyPropertyChanged
 
 public sealed partial class StartupPage : Page
 {
-    private ObservableCollection<StartupRow> _rows = new();
+    private List<StartupRow> _rows = new();
     private bool _populating;
     private bool _resnapping;
     private bool _loaded;
@@ -61,7 +60,6 @@ public sealed partial class StartupPage : Page
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        StartupList.ItemsSource = _rows;
         StartupList.ItemContainerTransitions?.Clear();
         Loaded += (_, _) => Load();
     }
@@ -80,11 +78,9 @@ public sealed partial class StartupPage : Page
         try
         {
             var items = await Task.Run(StartupEngine.List);
-            _rows.Clear();
-            foreach (var i in items)
-            {
-                _rows.Add(new StartupRow(i));
-            }
+            // Single reset: build the rows first, then hand the list over.
+            _rows = items.Select(i => new StartupRow(i)).ToList();
+            StartupList.ItemsSource = _rows;
             _loaded = true;
         }
         catch (Exception ex)

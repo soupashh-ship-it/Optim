@@ -1,15 +1,51 @@
 <Page
     x:Class="Optim.App.Views.NetworkPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:net="using:Optim.Core.Network">
 
     <Grid RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <!-- Below ~1000px the toolbars stack: the combo takes the full line and
+             its buttons move to the next one, so nothing is ever squeezed out
+             or clipped on a narrow window. -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1000"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="NarrowLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="AdapterActions.(Grid.Row)" Value="1"/>
+                        <Setter Target="AdapterActions.(Grid.Column)" Value="0"/>
+                        <Setter Target="AdapterActions.(Grid.ColumnSpan)" Value="2"/>
+                        <Setter Target="DnsActions.(Grid.Row)" Value="1"/>
+                        <Setter Target="DnsActions.(Grid.Column)" Value="0"/>
+                        <Setter Target="DnsActions.(Grid.ColumnSpan)" Value="2"/>
+                        <Setter Target="CustomPrimaryBox.(Grid.ColumnSpan)" Value="3"/>
+                        <Setter Target="CustomSecondaryBox.(Grid.Row)" Value="1"/>
+                        <Setter Target="CustomSecondaryBox.(Grid.Column)" Value="0"/>
+                        <Setter Target="CustomSecondaryBox.(Grid.ColumnSpan)" Value="2"/>
+                        <Setter Target="ApplyCustomDnsBtn.(Grid.Row)" Value="1"/>
+                        <Setter Target="ApplyCustomDnsBtn.(Grid.Column)" Value="2"/>
+                        <Setter Target="ApplyCustomDnsBtn.HorizontalAlignment" Value="Right"/>
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
         <StackPanel Spacing="2" Margin="0,0,0,4">
             <TextBlock Text="Network" Style="{StaticResource TitleTextBlockStyle}"/>
@@ -17,28 +53,72 @@
                        Style="{StaticResource CardDescStyle}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-            <ComboBox x:Name="AdapterBox" MinWidth="220" PlaceholderText="Select adapter"/>
-            <Button Content="Refresh" Click="Refresh_Click"/>
-            <Button Content="Flush DNS" Click="Flush_Click"/>
-            <Button x:Name="ToggleAdapterBtn" Content="Disable adapter" Click="ToggleAdapter_Click"/>
-        </StackPanel>
+        <Grid Grid.Row="1" ColumnSpacing="8" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="180"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
-            <ComboBox x:Name="DnsBox" MinWidth="220" DisplayMemberPath="Name" PlaceholderText="DNS profile"/>
-            <Button Content="Apply DNS" Click="ApplyDns_Click" Style="{StaticResource BrandButtonStyle}"/>
-            <Button Content="Reset to automatic" Click="ResetDns_Click"/>
-        </StackPanel>
+            <ComboBox x:Name="AdapterBox" Grid.Column="0" MinWidth="180"
+                      HorizontalAlignment="Stretch"
+                      PlaceholderText="Select adapter"/>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
-            <TextBox x:Name="CustomPrimaryBox" MinWidth="200" PlaceholderText="Custom primary DNS (IPv4 or IPv6)"/>
-            <TextBox x:Name="CustomSecondaryBox" MinWidth="200" PlaceholderText="Secondary (optional)"/>
-            <Button Content="Apply custom DNS" Click="ApplyCustomDns_Click"/>
-        </StackPanel>
+            <StackPanel x:Name="AdapterActions" Grid.Column="1"
+                        Orientation="Horizontal" Spacing="8">
+                <Button x:Name="RefreshBtn" Content="Refresh" Click="Refresh_Click"/>
+                <Button x:Name="FlushBtn" Content="Flush DNS" Click="Flush_Click"/>
+                <Button x:Name="ToggleAdapterBtn" Content="Disable adapter" Click="ToggleAdapter_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnSpacing="8" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="180"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ComboBox x:Name="DnsBox" Grid.Column="0" MinWidth="180"
+                      HorizontalAlignment="Stretch"
+                      DisplayMemberPath="Name" PlaceholderText="DNS profile"/>
+
+            <StackPanel x:Name="DnsActions" Grid.Column="1"
+                        Orientation="Horizontal" Spacing="8">
+                <Button x:Name="ApplyDnsBtn" Content="Apply DNS" Click="ApplyDns_Click"
+                        Style="{StaticResource BrandButtonStyle}"/>
+                <Button x:Name="ResetDnsBtn" Content="Reset to automatic" Click="ResetDns_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="3" ColumnSpacing="8" RowSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="140"/>
+                <ColumnDefinition Width="*" MinWidth="140"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBox x:Name="CustomPrimaryBox" Grid.Column="0" MinWidth="140"
+                     PlaceholderText="Custom primary DNS (IPv4 or IPv6)"/>
+            <TextBox x:Name="CustomSecondaryBox" Grid.Column="1" MinWidth="140"
+                     PlaceholderText="Secondary (optional)"/>
+            <Button x:Name="ApplyCustomDnsBtn" Grid.Column="2" Content="Apply custom DNS"
+                    Click="ApplyCustomDns_Click"/>
+        </Grid>
 
         <ListView x:Name="AdapterList" Grid.Row="4">
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="net:NetworkAdapterInfo">
                     <Grid Padding="4" ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
@@ -46,16 +126,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Spacing="1">
-                            <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextBlockStyle}"/>
-                            <TextBlock Text="{Binding InterfaceType}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6"/>
+                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyTextBlockStyle}"/>
+                            <TextBlock Text="{x:Bind InterfaceType}" Style="{StaticResource CaptionTextBlockStyle}" Opacity="0.6"/>
                         </StackPanel>
-                        <TextBlock Grid.Column="1" Text="{Binding DnsServers}" VerticalAlignment="Center" Opacity="0.7"/>
-                        <TextBlock Grid.Column="2" Text="{Binding Status}" VerticalAlignment="Center" Opacity="0.8"/>
+                        <TextBlock Grid.Column="1" Text="{x:Bind DnsServers}" VerticalAlignment="Center" Opacity="0.7"/>
+                        <TextBlock Grid.Column="2" Text="{x:Bind Status}" VerticalAlignment="Center" Opacity="0.8"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-        <InfoBar x:Name="ResultInfo" Grid.Row="4" VerticalAlignment="Bottom" IsOpen="False" IsClosable="True"/>
+        <InfoBar x:Name="ResultInfo" Grid.Row="5" IsOpen="False" IsClosable="True"/>
     </Grid>
 </Page>

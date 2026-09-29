@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Optim.Core.Network;
@@ -8,7 +7,6 @@ namespace Optim.App.Views;
 public sealed partial class NetworkPage : Page
 {
     private readonly NetworkEngine _engine = App.Get<NetworkEngine>();
-    private ObservableCollection<NetworkAdapterInfo> _adapters = new();
     private bool _loaded;
     private bool _loading;
 
@@ -16,7 +14,8 @@ public sealed partial class NetworkPage : Page
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        AdapterList.ItemsSource = _adapters;
+        // Rows are static once loaded; the platform's staggered entrance
+        // animation on a machine with dozens of adapters only costs frames.
         AdapterList.ItemContainerTransitions?.Clear();
         DnsBox.ItemsSource = NetworkEngine.KnownProfiles;
         Loaded += (_, _) => RefreshAdapters();
@@ -34,20 +33,14 @@ public sealed partial class NetworkPage : Page
         try
         {
             var adapters = await Task.Run(NetworkEngine.ListAdapters);
-            _adapters.Clear();
-            foreach (var a in adapters)
-            {
-                _adapters.Add(a);
-            }
 
-            AdapterBox.Items.Clear();
-            foreach (var a in adapters)
-            {
-                AdapterBox.Items.Add(a.Name);
-            }
+            // One reset per collection instead of a clear + N adds: the list
+            // and the combo each rebuild their containers in a single pass.
+            AdapterList.ItemsSource = adapters;
+            AdapterBox.ItemsSource = adapters.Select(a => a.Name).ToList();
 
             // Keep the user's adapter selected across refreshes.
-            if (selected is not null && AdapterBox.Items.Contains(selected))
+            if (selected is not null && adapters.Any(a => a.Name == selected))
             {
                 AdapterBox.SelectedItem = selected;
             }

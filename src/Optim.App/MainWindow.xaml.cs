@@ -16,7 +16,8 @@ public sealed partial class MainWindow : Window
         Title = "Optim";
         SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
         AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"));
-        AppWindow.Resize(new SizeInt32(1100, 720));
+        // Restore first: resizing to the default and then to the saved bounds
+        // makes the window visibly jump and re-lay-out on every launch.
         RestoreWindowBounds();
 
         // Persist size/position: every move/resize ends in one final Changed
@@ -48,7 +49,10 @@ public sealed partial class MainWindow : Window
     /// <summary>HKCU key holding the last window placement.</summary>
     private const string BoundsPath = "Software\\Optim\\Window";
 
-    /// <summary>Applies the saved size/position if a previous session stored one.</summary>
+    /// <summary>Default window size, used when nothing is saved yet.</summary>
+    private static readonly SizeInt32 DefaultSize = new(1100, 720);
+
+    /// <summary>Applies the saved size/position, or the default size on first run.</summary>
     private void RestoreWindowBounds()
     {
         try
@@ -57,7 +61,9 @@ public sealed partial class MainWindow : Window
             if (key?.GetValue("W") is not int w || key.GetValue("H") is not int h
                 || key.GetValue("X") is not int x || key.GetValue("Y") is not int y)
             {
-                _boundsRestored = true; // nothing saved: first run, save freely
+                // Nothing saved: first run. One resize, no move.
+                AppWindow.Resize(DefaultSize);
+                _boundsRestored = true; // save freely from here on
                 return;
             }
 

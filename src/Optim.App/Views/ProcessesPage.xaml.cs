@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -6,33 +6,59 @@ using Optim.Core.Processes;
 
 namespace Optim.App.Views;
 
-public sealed record ProcessRow(ProcessEntry Entry)
+/// <summary>
+/// One process row. Mutable on purpose: auto-refresh updates the entry in place
+/// and raises change notifications, so a tick repaints the CPU/RAM text without
+/// rebuilding the list (which would drop the user's selection every 5 seconds).
+/// </summary>
+public sealed class ProcessRow : INotifyPropertyChanged
 {
-    public string Name => Entry.Name;
-    public string WindowTitle => Entry.WindowTitle ?? "";
-    public int Pid => Entry.Id;
-    public string RamText => Optim.Core.SystemInfo.SystemInfoEngine.FormatBytes(Entry.WorkingSetBytes);
-    public string CpuText => Entry.CpuPercent <= 0 ? "—" : Entry.CpuPercent.ToString("0.0", CultureInfo) + " %";
-    public string ThreadText => Entry.Threads > 0 ? Entry.Threads.ToString(CultureInfo) : "—";
+    private ProcessEntry _entry;
+
+    public ProcessRow(ProcessEntry entry) => _entry = entry;
+
+    public ProcessEntry Entry => _entry;
+    public string Name => _entry.Name;
+    public int Pid => _entry.Id;
+    public string WindowTitle => _entry.WindowTitle ?? "";
+    public string RamText => Optim.Core.SystemInfo.SystemInfoEngine.FormatBytes(_entry.WorkingSetBytes);
+    public string CpuText => _entry.CpuPercent <= 0 ? "—" : _entry.CpuPercent.ToString("0.0", CultureInfo) + " %";
+    public string ThreadText => _entry.Threads > 0 ? _entry.Threads.ToString(CultureInfo) : "—";
     private static CultureInfo CultureInfo => System.Globalization.CultureInfo.InvariantCulture;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>Points the row at a fresh sample of the same process.</summary>
+    public void Update(ProcessEntry entry)
+    {
+        _entry = entry;
+        Raise(nameof(WindowTitle));
+        Raise(nameof(RamText));
+        Raise(nameof(CpuText));
+        Raise(nameof(ThreadText));
+    }
+
+    private void Raise(string name) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 public sealed partial class ProcessesPage : Page
 {
-    private ObservableCollection<ProcessRow> _rows = new();
+    private List<ProcessRow> _rows = new();
     private readonly List<ProcessRow> _allRows = new();
     private bool _loaded;
     private bool _loading;
+    private int? _selectedPid;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? _timer;
 
     public ProcessesPage()
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        ProcessList.ItemsSource = _rows;
         ProcessList.ItemContainerTransitions?.Clear();
         ProcessList.SelectionChanged += (_, _) =>
         {
+            _selectedPid = (ProcessList.SelectedItem as ProcessRow)?.Pid;
             var has = ProcessList.SelectedItem is ProcessRow;
             EndTaskBtn.IsEnabled = has;
             PriorityBtn.IsEnabled = has;
@@ -61,9 +87,28 @@ public sealed partial class ProcessesPage : Page
         try
         {
             var items = await Task.Run(ProcessEngine.Snapshot);
+
+            // Reuse the row objects that are still alive and only push the new
+            // numbers into them; rows for exited processes drop out and new
+            // ones are created. Snapshot order is memory-descending, so most
+            // refreshes keep the same sequence and skip the list reset
+            // entirely — no container churn, no lost selection.
+            var previous = _allRows.ToDictionary(r => r.Pid);
             _allRows.Clear();
-            _allRows.AddRange(items.Select(p => new ProcessRow(p)));
-            await ApplyFilterAsync();
+            foreach (var entry in items)
+            {
+                if (previous.TryGetValue(entry.Id, out var row))
+                {
+                    row.Update(entry);
+                }
+                else
+                {
+                    row = new ProcessRow(entry);
+                }
+                _allRows.Add(row);
+            }
+
+            ApplyFilter();
             _loaded = true;
         }
         catch (Exception ex)
@@ -77,28 +122,30 @@ public sealed partial class ProcessesPage : Page
         }
     }
 
-    /// <summary>Filters by name/title/PID and refreshes the match count.</summary>
-    private async Task ApplyFilterAsync()
+    /// <summary>
+    /// Filters by name/title/PID and refreshes the match count. Reassigns
+    /// ItemsSource only when the visible sequence actually changes; otherwise
+    /// the already-updated rows repaint through their own notifications.
+    /// </summary>
+    private void ApplyFilter()
     {
         var query = SearchBox.Text?.Trim() ?? string.Empty;
-        IEnumerable<ProcessRow> visible = _allRows;
-        if (query.Length > 0)
-        {
-            visible = _allRows.Where(r =>
+        var visible = query.Length == 0
+            ? _allRows.ToList()
+            : _allRows.Where(r =>
                 r.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || r.WindowTitle.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || (int.TryParse(query, out var pid) && r.Pid == pid));
-        }
+                || (int.TryParse(query, out var pid) && r.Pid == pid)).ToList();
 
-        _rows.Clear();
-        var added = 0;
-        foreach (var row in visible)
+        if (!SameSequence(_rows, visible))
         {
-            _rows.Add(row);
-            // Swapping hundreds of rows in one gulp stalls the UI; yield.
-            if (++added % 60 == 0)
+            _rows = visible;
+            ProcessList.ItemsSource = _rows;
+
+            // Keep the selected process selected across a real reshuffle.
+            if (_selectedPid is int pid)
             {
-                await Task.Yield();
+                ProcessList.SelectedItem = _rows.FirstOrDefault(r => r.Pid == pid);
             }
         }
 
@@ -107,10 +154,28 @@ public sealed partial class ProcessesPage : Page
             : $"{_rows.Count} of {_allRows.Count} processes match";
     }
 
+    private static bool SameSequence(List<ProcessRow> current, List<ProcessRow> next)
+    {
+        if (current.Count != next.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < current.Count; i++)
+        {
+            if (!ReferenceEquals(current[i], next[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>Search-as-you-type: Enter keeps working for muscle memory.</summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        _ = ApplyFilterAsync();
+        ApplyFilter();
     }
 
     private void AutoRefresh_Click(object sender, RoutedEventArgs e)

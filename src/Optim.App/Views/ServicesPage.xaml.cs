@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ServiceProcess;
 using Microsoft.UI.Xaml;
@@ -50,8 +49,10 @@ public sealed class ServiceRow : INotifyPropertyChanged
             : Entry.StartMode.ToString()
         : "Unknown";
 
-    /// <summary>Badge shown only for the boot-critical refuse-list.</summary>
-    public string CriticalVisibility => Entry.IsCritical ? "Visible" : "Collapsed";
+    /// <summary>Badge shown only for the boot-critical refuse-list. Typed as
+    /// Visibility so the compiled binding in the row template needs no converter.</summary>
+    public Microsoft.UI.Xaml.Visibility CriticalVisibility =>
+        Entry.IsCritical ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
 
     /// <summary>Start is offered to controllable services that are not running.</summary>
     public bool CanStart => Entry.CanModify && !Entry.IsRunning;
@@ -126,14 +127,13 @@ public sealed class ServiceRow : INotifyPropertyChanged
 public sealed partial class ServicesPage : Page
 {
     private readonly ServiceEngine _engine = App.Get<ServiceEngine>();
-    private ObservableCollection<ServiceRow> _rows = new();
+    private List<ServiceRow> _rows = new();
     private readonly List<ServiceRow> _allRows = new();
 
     public ServicesPage()
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        ServicesList.ItemsSource = _rows;
         // Staggered entrance animations on 200+ rows feel heavy; rows just appear.
         ServicesList.ItemContainerTransitions?.Clear();
         Loaded += (_, _) => Load();
@@ -147,8 +147,7 @@ public sealed partial class ServicesPage : Page
             var entries = await Task.Run(_engine.List);
             _allRows.Clear();
             _allRows.AddRange(entries.Select(s => new ServiceRow(s, _engine)));
-            _rows.Clear();
-            await ApplyFilterAsync();
+            ApplyFilter();
         }
         catch (Exception ex)
         {
@@ -157,8 +156,13 @@ public sealed partial class ServicesPage : Page
         }
     }
 
-    /// <summary>Filters by name/display/description and shows running counts.</summary>
-    private async Task ApplyFilterAsync()
+    /// <summary>
+    /// Filters by name/display/description and shows running counts. Assigns a
+    /// fresh list to ItemsSource rather than clearing and re-adding rows one at
+    /// a time, so typing in the search box costs one reset instead of hundreds
+    /// of collection-change notifications.
+    /// </summary>
+    private void ApplyFilter()
     {
         var query = SearchBox.Text?.Trim() ?? string.Empty;
         IEnumerable<ServiceRow> visible = _hideMicrosoft
@@ -178,17 +182,8 @@ public sealed partial class ServicesPage : Page
             row.Resnap();
         }
 
-        _rows.Clear();
-        var added = 0;
-        foreach (var row in visible)
-        {
-            _rows.Add(row);
-            // Swapping 200+ rows in one gulp stalls the UI thread; yield.
-            if (++added % 60 == 0)
-            {
-                await Task.Yield();
-            }
-        }
+        _rows = visible.ToList();
+        ServicesList.ItemsSource = _rows;
 
         var running = _allRows.Count(r => r.Entry.IsRunning);
         var suffix = _hideMicrosoft ? " · Microsoft services hidden" : "";
@@ -234,7 +229,7 @@ public sealed partial class ServicesPage : Page
     private void HideMicrosoft_Click(object sender, RoutedEventArgs e)
     {
         _hideMicrosoft = HideMicrosoftToggle.IsChecked == true;
-        _ = ApplyFilterAsync();
+        ApplyFilter();
     }
 
     private async void Mode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -332,14 +327,14 @@ public sealed partial class ServicesPage : Page
     /// <summary>Search-as-you-type; Enter still applies for muscle memory.</summary>
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        _ = ApplyFilterAsync();
+        ApplyFilter();
     }
 
     private void SearchBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)
         {
-            _ = ApplyFilterAsync();
+            ApplyFilter();
         }
     }
 

@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -17,7 +16,9 @@ public sealed class PackageRow : INotifyPropertyChanged
     public string DisplayName => _pkg.DisplayName;
     public string PackageFamilyName => _pkg.PackageFamilyName;
     public bool IsProtected => _pkg.IsProtected;
-    public string ProtectedVisibility => IsProtected ? "Visible" : "Collapsed";
+    /// <summary>Typed so the compiled row binding needs no converter.</summary>
+    public Visibility ProtectedVisibility =>
+        IsProtected ? Visibility.Visible : Visibility.Collapsed;
 
     public bool IsSelected
     {
@@ -41,7 +42,7 @@ public sealed class ReinstallRow
 public sealed partial class DebloatPage : Page
 {
     private readonly DebloatEngine _engine = App.Get<DebloatEngine>();
-    private ObservableCollection<PackageRow> _rows = new();
+    private List<PackageRow> _rows = new();
     private List<PackageRow> _all = new();
     private bool _busy;
 
@@ -49,7 +50,6 @@ public sealed partial class DebloatPage : Page
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        PackagesList.ItemsSource = _rows;
         PackagesList.ItemContainerTransitions?.Clear();
         Loaded += async (_, _) =>
         {
@@ -76,16 +76,10 @@ public sealed partial class DebloatPage : Page
         try
         {
             var items = _engine.ListInstalled();
-            _all.Clear();
-            var added = 0;
-            foreach (var p in items)
-            {
-                _all.Add(new PackageRow(p));
-                if (++added % 25 == 0)
-                {
-                    await Task.Yield();
-                }
-            }
+            // Build the rows first and hand them to the ListView in one go:
+            // with nothing to add to a bound collection, there is no reason to
+            // hand the UI thread back every 25 packages.
+            _all = items.Select(p => new PackageRow(p)).ToList();
             ApplyFilter();
         }
         catch (Exception ex)
@@ -101,17 +95,20 @@ public sealed partial class DebloatPage : Page
 
     private void Search_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
 
+    /// <summary>
+    /// One ItemsSource swap per filter change instead of a clear plus one add
+    /// notification per row, so typing in the search box stays smooth on a
+    /// machine with a few hundred installed packages.
+    /// </summary>
     private void ApplyFilter()
     {
         var query = SearchBox.Text?.Trim() ?? string.Empty;
-        _rows.Clear();
-        foreach (var row in _all.Where(r =>
+        _rows = _all.Where(r =>
             string.IsNullOrEmpty(query)
             || r.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || r.PackageFamilyName.Contains(query, StringComparison.OrdinalIgnoreCase)))
-        {
-            _rows.Add(row);
-        }
+            || r.PackageFamilyName.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        PackagesList.ItemsSource = _rows;
         CountText.Text = _rows.Count == _all.Count
             ? $"{_all.Count} apps"
             : $"{_rows.Count} of {_all.Count} shown";

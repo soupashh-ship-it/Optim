@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,23 +8,27 @@ namespace Optim.App.Views;
 
 public sealed record SecurityRow(SecurityItem Item)
 {
+    /// <summary>Shared brushes: a fresh SolidColorBrush per row (and per
+    /// re-evaluation) is pure allocation in a list that repaints on refresh.</summary>
+    private static readonly Brush Good = new SolidColorBrush(Colors.ForestGreen);
+    private static readonly Brush Attention = new SolidColorBrush(Colors.OrangeRed);
+
     public string Name => Item.Name;
     public string State => Item.State;
     public string Detail => Item.Detail;
-    public Brush StateBrush => new SolidColorBrush(Item.IsRecommended ? Colors.ForestGreen : Colors.OrangeRed);
+    public Brush StateBrush => Item.IsRecommended ? Good : Attention;
 }
 
 public sealed partial class SecurityPage : Page
 {
     private bool _populatingToggles;
-    private ObservableCollection<SecurityRow> _rows = new();
+    private List<SecurityRow> _rows = new();
     private bool _loaded;
 
     public SecurityPage()
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        SecurityList.ItemsSource = _rows;
         SecurityList.ItemContainerTransitions?.Clear();
         Loaded += (_, _) => Load();
     }
@@ -39,11 +42,9 @@ public sealed partial class SecurityPage : Page
 
         try
         {
-            _rows.Clear();
-            foreach (var item in SecurityPostureEngine.Read())
-            {
-                _rows.Add(new SecurityRow(item));
-            }
+            // One reset instead of a clear plus an add per posture row.
+            _rows = SecurityPostureEngine.Read().Select(i => new SecurityRow(i)).ToList();
+            SecurityList.ItemsSource = _rows;
             _loaded = true;
             PaintShield();
             SyncToggles();

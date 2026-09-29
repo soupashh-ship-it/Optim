@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -30,7 +29,7 @@ public sealed class WingetRow : INotifyPropertyChanged
 public sealed partial class PackagesPage : Page
 {
     private readonly PackageEngine _engine = App.Get<PackageEngine>();
-    private ObservableCollection<WingetRow> _rows = new();
+    private List<WingetRow> _rows = new();
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _opCts;
 
@@ -38,7 +37,6 @@ public sealed partial class PackagesPage : Page
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        PackageList.ItemsSource = _rows;
         PackageList.ItemContainerTransitions?.Clear();
         Unloaded += (_, _) =>
         {
@@ -59,7 +57,6 @@ public sealed partial class PackagesPage : Page
         }
 
         Busy.IsActive = true;
-        _rows.Clear();
         StatusText.Text = "Scanning…";
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
@@ -67,10 +64,10 @@ public sealed partial class PackagesPage : Page
         try
         {
             var packages = await _engine.ListUpgradesAsync(token);
-            foreach (var p in packages)
-            {
-                _rows.Add(new WingetRow(p));
-            }
+            // One ItemsSource swap: the list resets once instead of paying a
+            // layout pass per row added to an observable collection.
+            _rows = packages.Select(p => new WingetRow(p)).ToList();
+            PackageList.ItemsSource = _rows;
             StatusText.Text = TuneKit.Count(packages.Count, "upgrade", "upgrades") + " available";
         }
         catch (OperationCanceledException)
@@ -179,19 +176,16 @@ public sealed partial class PackagesPage : Page
         }
 
         Busy.IsActive = true;
-        _rows.Clear();
         StatusText.Text = $"Searching for '{query}'…";
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
         try
         {
             var results = await _engine.SearchAsync(query, _cts.Token);
-            foreach (var r in results)
-            {
-                // InstalledVersion stays empty; AvailableVersion shows the
-                // version that would be installed.
-                _rows.Add(new WingetRow(new WingetPackage(r.Id, r.Name, "", r.Version)));
-            }
+            // InstalledVersion stays empty; AvailableVersion shows the
+            // version that would be installed.
+            _rows = results.Select(r => new WingetRow(new WingetPackage(r.Id, r.Name, "", r.Version))).ToList();
+            PackageList.ItemsSource = _rows;
             StatusText.Text = $"{TuneKit.Count(results.Count, "result", "results")} for '{query}'";
         }
         catch (OperationCanceledException)

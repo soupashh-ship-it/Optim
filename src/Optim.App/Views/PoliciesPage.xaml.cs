@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Optim.Core.Policies;
@@ -15,14 +14,13 @@ public sealed record PolicyRow(PolicyFinding Finding)
 
 public sealed partial class PoliciesPage : Page
 {
-    private ObservableCollection<PolicyRow> _rows = new();
+    private List<PolicyRow> _rows = new();
     private IReadOnlyList<PolicyFinding> _findings = Array.Empty<PolicyFinding>();
 
     public PoliciesPage()
     {
         InitializeComponent();
         NavigationCacheMode = Microsoft.UI.Xaml.Navigation.NavigationCacheMode.Required;
-        FindingsList.ItemsSource = _rows;
         FindingsList.ItemContainerTransitions?.Clear();
     }
 
@@ -34,11 +32,9 @@ public sealed partial class PoliciesPage : Page
         try
         {
             _findings = await Task.Run(PolicyScanEngine.Scan);
-            _rows.Clear();
-            foreach (var f in _findings)
-            {
-                _rows.Add(new PolicyRow(f));
-            }
+            // One reset for the whole result set.
+            _rows = _findings.Select(f => new PolicyRow(f)).ToList();
+            FindingsList.ItemsSource = _rows;
 
             CountText.Text = TuneKit.Count(_findings.Count, "override found", "overrides found");
         }
@@ -86,7 +82,8 @@ public sealed partial class PoliciesPage : Page
             PolicyScanEngine.Remove(row.Finding, App.Get<Optim.Core.Tweaks.RegistryTweakEngine>()));
         if (ok)
         {
-            _rows.Remove(row);
+            _rows = _rows.Where(r => !ReferenceEquals(r, row)).ToList();
+            FindingsList.ItemsSource = _rows;
             CountText.Text = TuneKit.Count(_rows.Count, "override found", "overrides found");
         }
 
