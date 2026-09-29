@@ -1,0 +1,42 @@
+#!/bin/sh
+# Single-author gate for commit messages.
+#
+# Rejects a commit whose message credits another author (a "Co-authored-by"
+# trailer puts that account on the repo's contributor graph, and shared history
+# cannot be cleaned up without a rewrite) and refuses to commit under an
+# identity that is not the repo owner's GitHub noreply address.
+#
+# Enable from the repo root (Git for Windows ships the sh this needs):
+#   git config core.hooksPath scripts/hooks
+# A copy is also installed in .git/hooks/commit-msg so it is already active
+# locally. Bypassing it is possible with `git commit --no-verify`, which is why
+# tests/Optim.Core.Tests/CommitAuthorshipTests.cs audits the history as well.
+#
+# $1 is the path of the file holding the proposed message.
+
+msg_file=${1:-}
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+    echo "commit-msg: expected a path to the commit message file." >&2
+    exit 1
+fi
+
+status=0
+
+# 1. No trailer handing credit to someone else.
+if grep -qiE '^[[:space:]]*co-authored-by[[:space:]]*:' "$msg_file"; then
+    echo "commit-msg: this project is single-author - remove the co-author trailer:" >&2
+    grep -niE '^[[:space:]]*co-authored-by[[:space:]]*:' "$msg_file" | sed 's/^/  /' >&2
+    status=1
+fi
+
+# 2. The commit must be authored by the owner. Only the email is checked: that
+#    is what GitHub maps to an account, the display name is not attribution.
+email=$(git config --get user.email 2>/dev/null)
+if ! printf '%s\n' "$email" | grep -qiE '^([0-9]+\+)?soupashh-ship-it@users\.noreply\.github\.com$'; then
+    echo "commit-msg: user.email is '${email:-unset}', which is not the repo owner's GitHub noreply address." >&2
+    echo "            Set it with:" >&2
+    echo "              git config user.email soupashh-ship-it@users.noreply.github.com" >&2
+    status=1
+fi
+
+exit $status
