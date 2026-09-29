@@ -28,14 +28,22 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        // Single instance: a second copy would fight the first over the
-        // journal and the live system state. Bring the existing copy forward
-        // is out of scope for a portable build; exiting with a toast logged
-        // to the log file is the safe behaviour.
-        if (!SingleInstanceGuard.TryAcquire())
+        // Single instance: a second copy would fight the first over the journal
+        // and the live system state, so only one runs. A launch that lands on the
+        // running copy forwards its activation there and the existing window is
+        // raised - exiting silently made the app look like it would not open.
+        if (!SingleInstance.TryAcquire("Optim"))
         {
-            Optim.Core.Logging.FileLogger.Warn("Another Optim instance is already running — exiting.");
-            Environment.Exit(42);
+            Environment.Exit(0);
+        }
+
+        // A forwarded launch arrives on a background thread: raise the window on
+        // the UI thread. The window may not exist yet if the activation races the
+        // first launch, in which case that launch activates it anyway.
+        if (SingleInstance.Primary is { } primary)
+        {
+            var uiQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+            primary.Activated += (_, _) => uiQueue.TryEnqueue(() => CurrentWindow?.BringToFront());
         }
 
         _services = ConfigureServices();
@@ -75,7 +83,9 @@ public partial class App : Application
         try
         {
             CurrentWindow = new MainWindow();
-            CurrentWindow.Activate();
+            // Not just Activate(): this also recovers a window parked off every
+            // display and claims the foreground.
+            CurrentWindow.BringToFront();
             Optim.Core.Logging.FileLogger.Info("MainWindow activated");
         }
         catch (Exception ex)
@@ -148,21 +158,3 @@ public partial class App : Application
     }
 }
 
-/// <summary>Process-wide single-instance guard for the Optim executable.</summary>
-internal static class SingleInstanceGuard
-{
-    private static Mutex? _mutex;
-
-    public static bool TryAcquire()
-    {
-        try
-        {
-            _mutex = new Mutex(initiallyOwned: true, "Global\\OptimApp-SingleInstance", out var createdNew);
-            return createdNew;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-}
