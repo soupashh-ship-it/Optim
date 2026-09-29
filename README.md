@@ -17,7 +17,7 @@ tuning, privacy hardening, and deep system insight into one clean Fluent app.
 | 🛡️ Privacy   | Telemetry, advertising ID, activity history, Recall, Cortana, location    |
 | 🧩 Features  | Real DISM optional-feature toggles + registry feature tweaks (widgets, Copilot, hibernation, classic context menu) |
 | 🧹 Debloat   | Installed appx list with multi-select uninstall, protected components, and a **reinstall** escape hatch |
-| ⚙️ Services  | Vetted services switchable (Automatic/Manual/Disabled) with live status; everything else is read-only, all changes journaled |
+| ⚙️ Services  | Start/stop/restart and start-type changes (Automatic/Manual/Disabled/Delayed) for every service — boot-critical ones stay read-only, changes journaled |
 | 📋 Processes | Live process list with priority classes, per-CPU affinity, and guarded end-task |
 | 🚀 Startup   | User + machine Run keys and startup folder with enable/disable/delete     |
 | 📦 Packages  | winget-driven upgrade discovery and one-click upgrades (with confirm)     |

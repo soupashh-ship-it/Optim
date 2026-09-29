@@ -85,7 +85,7 @@ applying batches; failures are reported per-tweak, never partially silent.
 | Privacy    | Telemetry, advertising ID, activity history, tracking toggles            |
 | Features   | Catalog tweaks plus real DISM optional-feature toggles                    |
 | Debloat    | Installed Appx list, multi-select uninstall, provisioned-package removal |
-| Services   | SCM list with start type/status, safe set + expert set, backups          |
+| Services   | SCM list with start/stop/restart and start-type changes; boot-critical refuse-list, journaled |
 | Processes  | Live process list, CPU/RAM columns, priority/affinity, guarded end-task  |
 | Startup    | Startup folder + Run keys + approved startup entries, enable/disable     |
 | Device     | OS/CPU/GPU/RAM/disk inventory, driver export button                      |

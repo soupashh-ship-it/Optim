@@ -12,7 +12,7 @@
 
         <StackPanel Spacing="2" Margin="0,0,0,4">
             <TextBlock Text="Services" Style="{StaticResource TitleTextBlockStyle}"/>
-            <TextBlock Text="Start types for every Windows service. Only vetted services can be changed here â€” a wrong start type can stop Windows from booting."
+            <TextBlock Text="Start, stop, restart and reconfigure every Windows service. Boot-critical services are read-only — changing those can stop Windows from booting."
                        Style="{StaticResource CardDescStyle}" TextWrapping="Wrap" MaxWidth="800"/>
         </StackPanel>
 
@@ -40,11 +40,12 @@
                         </StackPanel>
                         <TextBlock Grid.Column="1" Text="{Binding StatusText}" VerticalAlignment="Center" Opacity="0.8"/>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
-                            <ComboBox MinWidth="120" IsEnabled="{Binding CanChange}"
+                            <ComboBox MinWidth="130" IsEnabled="{Binding CanChange}"
                                       SelectedIndex="{Binding StartModeIndex, Mode=TwoWay}" SelectionChanged="Mode_SelectionChanged">
                                 <ComboBoxItem Content="Automatic"/>
                                 <ComboBoxItem Content="Manual"/>
                                 <ComboBoxItem Content="Disabled"/>
+                                <ComboBoxItem Content="Automatic (delayed)"/>
                             </ComboBox>
                             <TextBlock Text="{Binding StartModeText}" Opacity="0.55"
                                        Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Center"/>
@@ -57,8 +58,8 @@
                             <Button Content="Restart" Click="Restart_Click" Padding="8,2" MinWidth="0"
                                     IsEnabled="{Binding CanStop}"/>
                         </StackPanel>
-                        <TextBlock Grid.Column="4" Text="Vetted" Foreground="Green" VerticalAlignment="Center"
-                                   Visibility="{Binding VettedVisibility}" Style="{StaticResource CaptionTextBlockStyle}"/>
+                        <TextBlock Grid.Column="4" Text="Boot-critical" Foreground="OrangeRed" VerticalAlignment="Center"
+                                   Visibility="{Binding CriticalVisibility}" Style="{StaticResource CaptionTextBlockStyle}"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

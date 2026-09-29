@@ -3,17 +3,21 @@ using Optim.Core.Tweaks;
 
 namespace Optim.Core.ServicesMgmt;
 
-public sealed record ServiceEntry(string Name, string DisplayName, ServiceStartMode StartMode, ServiceControllerStatus Status, bool IsSafeToChange, bool IsRunning, string Description, bool StartModeKnown);
+public sealed record ServiceEntry(string Name, string DisplayName, ServiceStartMode StartMode, ServiceControllerStatus Status, bool CanModify, bool IsCritical, bool IsRunning, string Description, bool StartModeKnown, bool IsDelayedAuto);
 
 /// <summary>
-/// Service management. Only vetted services can be modified from the UI; the
-/// rest (especially boot- and security-critical ones) are read-only so a
-/// confirmation dialog can never promise a change the engine will refuse.
-/// Successful changes are journaled so "Revert all" restores them.
+/// Service management. Every service is controllable — start/stop/restart and
+/// start-type changes — EXCEPT a small refuse-list of boot-critical services
+/// (RPC, security accounts, event log, …) that can stop Windows from booting
+/// or blur the line into breaking the OS. Successful start-type changes are
+/// journaled so "Revert all" restores them.
 /// </summary>
 public sealed class ServiceEngine
 {
     private readonly ChangeJournal? _journal;
+
+    /// <summary>Historic vetted list, still used to seed the search index.
+    /// It no longer gates UI changes; <see cref="Critical"/> does.</summary>
     private static readonly HashSet<string> Vetted = new(StringComparer.OrdinalIgnoreCase)
     {
         "DiagTrack", "dmwappushservice", "SysMain", "WSearch", "MapsBroker",
@@ -24,9 +28,9 @@ public sealed class ServiceEngine
 
     public ServiceEngine(ChangeJournal? journal = null) => _journal = journal;
 
-    /// <summary>Boot- and security-critical services: changing these can stop
-    /// Windows from booting or disable protection. Still changeable, but the UI
-    /// shows its strongest warning for them.</summary>
+    /// <summary>Boot- and security-critical services: the refuse-list. Changing
+    /// these can stop Windows from booting entirely, so every mutation refuses
+    /// them — the UI renders them read-only with a badge.</summary>
     private static readonly HashSet<string> Critical = new(StringComparer.OrdinalIgnoreCase)
     {
         "RpcSs", "DcomLaunch", "RpcEptMapper", "SamSs", "lsm",
@@ -57,7 +61,9 @@ public sealed class ServiceEngine
                 var mode = SafeStartMode(sc);
                 var running = false;
                 try { running = sc.Status == ServiceControllerStatus.Running; } catch { }
-                result.Add(new ServiceEntry(sc.ServiceName, SafeDisplayName(sc), mode.Mode, StatusOf(sc), IsVetted(sc.ServiceName), running, ServiceDescription(sc.ServiceName), mode.Known));
+                var critical = IsCritical(sc.ServiceName);
+                var delayed = mode.Mode == ServiceStartMode.Automatic && IsDelayedAuto(sc.ServiceName);
+                result.Add(new ServiceEntry(sc.ServiceName, SafeDisplayName(sc), mode.Mode, StatusOf(sc), !critical, critical, running, ServiceDescription(sc.ServiceName), mode.Known, delayed));
             }
             catch (Exception ex)
             {
@@ -125,6 +131,12 @@ public sealed class ServiceEngine
     private static async Task<bool> ControlAsync(
         string serviceName, Action<ServiceController> action, string verb, bool stopFirst = false)
     {
+        if (IsCritical(serviceName))
+        {
+            Optim.Core.Logging.FileLogger.Warn($"Service {serviceName} {verb} refused: boot-critical.");
+            return false;
+        }
+
         try
         {
             using var sc = new ServiceController(serviceName);
@@ -176,23 +188,43 @@ public sealed class ServiceEngine
         catch { return (ServiceStartMode.Manual, false); }
     }
 
-    /// <summary>Sets the start type via the registry (SCM ChangeStartMode equivalent).</summary>
-    public bool SetStartType(string serviceName, ServiceStartMode mode)
+    /// <summary>
+    /// Reads the DelayedAutostart flag (only meaningful for Automatic start).
+    /// ServiceController reports delayed services as plain Automatic.
+    /// </summary>
+    private static bool IsDelayedAuto(string serviceName)
     {
-        if (!IsVetted(serviceName))
+        try
         {
-            throw new InvalidOperationException($"'{serviceName}' is not on the vetted service list.");
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                $@"SYSTEM\CurrentControlSet\Services\{serviceName}");
+            return key?.GetValue("DelayedAutostart") is 1;
         }
-
-        var value = mode switch
+        catch
         {
-            ServiceStartMode.Automatic => 2,
-            ServiceStartMode.Manual => 3,
-            ServiceStartMode.Disabled => 4,
-            // AutomaticDelayedStart reports as Automatic via ServiceController
-            // but must never be written blindly; Boot/System are kernel modes.
+            return false;
+        }
+    }
+
+    /// <summary>Sets the start type via the registry (SCM ChangeStartMode equivalent).
+    /// Boot-critical services are refused; everything else is allowed and journaled.
+    /// <paramref name="delayedStart"/> only applies to Automatic mode.</summary>
+    public bool SetStartType(string serviceName, ServiceStartMode mode, bool delayedStart = false)
+    {
+        // Validate the mode first so bad input never reaches the guards below.
+        var (value, delayed) = mode switch
+        {
+            ServiceStartMode.Automatic => (2, (bool?)delayedStart),
+            ServiceStartMode.Manual => (3, (bool?)false),
+            ServiceStartMode.Disabled => (4, (bool?)false),
+            // Boot/System are kernel start modes no user tweak should write.
             _ => throw new ArgumentOutOfRangeException(nameof(mode), $"Unsupported start mode {mode}.")
         };
+
+        if (IsCritical(serviceName))
+        {
+            throw new InvalidOperationException($"'{serviceName}' is boot-critical and cannot be changed from Optim.");
+        }
 
         var keyPath = $@"SYSTEM\CurrentControlSet\Services\{serviceName}";
         try
@@ -232,6 +264,17 @@ public sealed class ServiceEngine
                 }
 
                 key.SetValue("Start", value, Microsoft.Win32.RegistryValueKind.DWord);
+
+                // Delayed start only means something for Automatic; keep the
+                // flag consistent instead of leaving a stale value behind.
+                if (delayed == true)
+                {
+                    key.SetValue("DelayedAutostart", 1, Microsoft.Win32.RegistryValueKind.DWord);
+                }
+                else if (key.GetValue("DelayedAutostart") is not null)
+                {
+                    key.SetValue("DelayedAutostart", 0, Microsoft.Win32.RegistryValueKind.DWord);
+                }
             }
             catch
             {

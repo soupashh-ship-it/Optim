@@ -19,7 +19,7 @@ public sealed class ServiceRow : INotifyPropertyChanged
         _engine = engine;
         _startModeIndex = entry.StartMode switch
         {
-            ServiceStartMode.Automatic => 0,
+            ServiceStartMode.Automatic => entry.IsDelayedAuto ? 3 : 0,
             ServiceStartMode.Manual => 1,
             ServiceStartMode.Disabled => 2,
             _ => 1
@@ -34,16 +34,27 @@ public sealed class ServiceRow : INotifyPropertyChanged
     public string Description => Entry.Description;
     public bool HasDescription => !string.IsNullOrWhiteSpace(Entry.Description);
     public string StatusText => Entry.IsRunning ? "Running" : "Stopped";
-    /// <summary>False for off-list services: the combo is disabled, never confirmed-then-refused.</summary>
-    public bool IsSafeToChange => Entry.IsSafeToChange;
+
+    /// <summary>False for boot-critical services: combo and buttons render disabled.</summary>
+    public bool CanModify => Entry.CanModify;
+
     /// <summary>False when the start type could not be read: the combo is disabled.</summary>
-    public bool CanChange => Entry.IsSafeToChange && Entry.StartModeKnown;
-    public string StartModeText => Entry.StartModeKnown ? Entry.StartMode.ToString() : "Unknown";
-    public string VettedVisibility => Entry.IsSafeToChange ? "Visible" : "Collapsed";
-    /// <summary>Start is offered only to vetted services that are not running.</summary>
-    public bool CanStart => Entry.IsSafeToChange && !Entry.IsRunning;
-    /// <summary>Stop/Restart are offered only to vetted running services.</summary>
-    public bool CanStop => Entry.IsSafeToChange && Entry.IsRunning;
+    public bool CanChange => Entry.CanModify && Entry.StartModeKnown;
+
+    public string StartModeText => Entry.StartModeKnown
+        ? Entry.StartMode == ServiceStartMode.Automatic && Entry.IsDelayedAuto
+            ? "Automatic (delayed)"
+            : Entry.StartMode.ToString()
+        : "Unknown";
+
+    /// <summary>Badge shown only for the boot-critical refuse-list.</summary>
+    public string CriticalVisibility => Entry.IsCritical ? "Visible" : "Collapsed";
+
+    /// <summary>Start is offered to controllable services that are not running.</summary>
+    public bool CanStart => Entry.CanModify && !Entry.IsRunning;
+
+    /// <summary>Stop/Restart are offered to controllable running services.</summary>
+    public bool CanStop => Entry.CanModify && Entry.IsRunning;
 
     public int StartModeIndex
     {
@@ -51,9 +62,9 @@ public sealed class ServiceRow : INotifyPropertyChanged
         set
         {
             // Binding pushes only: the SelectionChanged handler decides whether
-            // to apply (with confirmation for non-vetted services). Never call
-            // the engine from here, or the confirm dialog gets bypassed.
-            if (_initializing || value == _startModeIndex || value < 0 || value > 2)
+            // to apply (with confirmation). Never call the engine from here, or
+            // the confirm dialog gets bypassed.
+            if (_initializing || value == _startModeIndex || value < 0 || value > 3)
             {
                 return;
             }
@@ -70,21 +81,22 @@ public sealed class ServiceRow : INotifyPropertyChanged
 
     public bool TryApply(int index)
     {
-        if (_initializing || index < 0 || index > 2)
+        if (_initializing || index < 0 || index > 3)
         {
             return false;
         }
 
-        var mode = index switch
+        var (mode, delayed) = index switch
         {
-            0 => ServiceStartMode.Automatic,
-            1 => ServiceStartMode.Manual,
-            _ => ServiceStartMode.Disabled
+            0 => (ServiceStartMode.Automatic, false),
+            1 => (ServiceStartMode.Manual, false),
+            2 => (ServiceStartMode.Disabled, false),
+            _ => (ServiceStartMode.Automatic, true)
         };
 
         try
         {
-            if (_engine.SetStartType(Entry.Name, mode))
+            if (_engine.SetStartType(Entry.Name, mode, delayed))
             {
                 _startModeIndex = index;
                 AppliedIndex = index;
@@ -230,8 +242,8 @@ public sealed partial class ServicesPage : Page
                 return;
             }
 
-            // Off-list and unknown-mode services render read-only (combo disabled):
-            // the engine only ever changes vetted services.
+            // Boot-critical and unknown-mode services render read-only (controls
+            // disabled): the engine only ever changes controllable services.
             if (!row.CanChange)
             {
                 row.Resnap();
@@ -249,14 +261,14 @@ public sealed partial class ServicesPage : Page
             _changing = true;
             try
             {
-                // Only vetted rows reach this point (non-vetted combos are
-                // disabled); apply directly without a misleading confirmation.
-                if (!row.TryApply(index))
+                var (ok, message) = await ConfirmAndApplyAsync(row, index);
+                if (!ok)
                 {
                     row.Resnap();
-                    Optim.App.Services.ToastService.Show(
-                        $"Could not change '{row.DisplayName}' — see logs.",
-                        Optim.App.Services.ToastKind.Error);
+                    if (message is not null)
+                    {
+                        Optim.App.Services.ToastService.Show(message, Optim.App.Services.ToastKind.Error);
+                    }
                 }
             }
             finally
@@ -268,6 +280,38 @@ public sealed partial class ServicesPage : Page
         {
             Optim.Core.Logging.FileLogger.Error($"Service mode change: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Confirms a start-type change and applies it. Disabled is destructive
+    /// enough to always warrant a dialog; the other modes apply directly so
+    /// the page stays fast. Returns (ok, toast message on failure).
+    /// </summary>
+    private async Task<(bool Ok, string? Error)> ConfirmAndApplyAsync(ServiceRow row, int index)
+    {
+        if (index == 2 && XamlRoot is not null)
+        {
+            var confirm = new ContentDialog
+            {
+                Title = "Disable service",
+                Content = $"Disable '{row.DisplayName}' ({row.Name})? Windows and apps will not be able to start it.",
+                PrimaryButtonText = "Disable",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+            if (await confirm.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return (false, null);
+            }
+        }
+
+        if (row.TryApply(index))
+        {
+            return (true, null);
+        }
+
+        return (false, $"Could not change '{row.DisplayName}' — see logs.");
     }
 
     /// <summary>Search-as-you-type; Enter still applies for muscle memory.</summary>
@@ -291,9 +335,9 @@ public sealed partial class ServicesPage : Page
             return false;
         }
 
-        // Belt and braces: buttons are bound-disabled off-list, but never
-        // control a service the engine would refuse to configure.
-        if (!row.IsSafeToChange)
+        // Belt and braces: buttons are bound-disabled for boot-critical services,
+        // but never control a service the engine would refuse.
+        if (!row.CanModify)
         {
             return false;
         }

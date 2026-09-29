@@ -145,11 +145,22 @@ public class EngineFixTests : IDisposable
     }
 
     [Fact]
-    public void Service_set_reports_missing_key_as_failure()
+    public void Service_set_reports_missing_service_as_failure()
     {
         var engine = new ServiceEngine();
-        // Vetted name pattern can't exist: verify false path via unvetted guard.
-        Assert.Throws<InvalidOperationException>(() => engine.SetStartType("NoSuchServiceXYZ", System.ServiceProcess.ServiceStartMode.Manual));
+        // A service that does not exist is not boot-critical, so the guard
+        // passes and the registry lookup reports failure instead of throwing.
+        Assert.False(engine.SetStartType("NoSuchServiceXYZ", System.ServiceProcess.ServiceStartMode.Manual));
+    }
+
+    [Fact]
+    public void Service_set_refuses_boot_critical_services()
+    {
+        var engine = new ServiceEngine();
+        Assert.Throws<InvalidOperationException>(
+            () => engine.SetStartType("RpcSs", System.ServiceProcess.ServiceStartMode.Manual));
+        Assert.Throws<InvalidOperationException>(
+            () => engine.SetStartType("WinDefend", System.ServiceProcess.ServiceStartMode.Disabled));
     }
 
     [Fact]
