@@ -61,5 +61,11 @@ Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]
+; runascurrentuser is required: the app manifest demands requireAdministrator,
+; and post-install entries otherwise launch with the ORIGINAL (de-elevated)
+; user token when Setup itself is elevated. CreateProcess refuses that with
+; error 740 ("The requested operation requires elevation"). This flag reuses
+; Setup's admin token, so the finish-page launch works without a second UAC
+; prompt.
 Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; \
-    Flags: nowait postinstall skipifsilent
+    Flags: nowait postinstall skipifsilent runascurrentuser
